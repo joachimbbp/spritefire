@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/joachimbbp/spritefire/src/sprite"
 )
@@ -15,7 +16,10 @@ func main() {
 	mode := "database" //user setable based on what you would like to execute
 	switch mode {
 	case "database":
+		dbStart := time.Now()
 		sprite.Database(spriteInput, spriteOutput)
+		dbEnd := time.Now()
+		fmt.Printf("database created in %s seconds", dbEnd.Sub(dbStart))
 
 	case "resize":
 		sprite.Resize()
