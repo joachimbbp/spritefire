@@ -8,5 +8,5 @@ import (
 
 func main() {
 	fmt.Print("Main Function\n")
-	sprite.Sprite()
+	sprite.Database()
 }
