@@ -16,7 +16,7 @@ import (
 
 func Database(input string, output string) {
 	fmt.Printf("Sprite Database Function Executing\n Converting Sprites in %s and saving to output %s", input, output)
-	SpriteColorDatabase := make(map[string]util.Rgb)
+	spriteColorDatabase := make(map[string]util.Rgb)
 
 	sprites, err := os.ReadDir(input)
 	if err != nil {
@@ -25,9 +25,9 @@ func Database(input string, output string) {
 	for _, entry := range sprites { //study this syntax
 		if !entry.IsDir() { //TODO maybe need a check that it's a PNG file?
 			filePath := filepath.Join(input, entry.Name())
-			SpriteColorDatabase[entry.Name()] = averageColor(filePath)
+			spriteColorDatabase[entry.Name()] = averageColor(filePath)
 		}
-	} //Will there be a memory leak here if I don't flush this after saving?
+	}
 
 	//Save Database file
 	file, err := os.Create(filepath.Join(util.DatabasePath, "sprite_color_db"))
@@ -36,7 +36,7 @@ func Database(input string, output string) {
 	}
 	defer file.Close()
 	encoder := gob.NewEncoder(file)
-	if err := encoder.Encode(SpriteColorDatabase); err != nil { //study syntax
+	if err := encoder.Encode(spriteColorDatabase); err != nil { //study syntax
 		log.Fatal(err)
 	}
 
