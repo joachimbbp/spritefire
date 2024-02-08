@@ -26,7 +26,7 @@ func main() {
 		fmt.Printf("database created in %s", dbEnd.Sub(dbStart))
 	case "printdb":
 		fmt.Printf("printing db\n")
-		util.DecodeColorDatabase("/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/database/sprite_color_db")
+		util.PrintColorDatabase("/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/database/sprite_color_db")
 	case "resize":
 		rsStart := time.Now()
 		sprite.Resize(util.SpriteInput, util.SpriteOutput)

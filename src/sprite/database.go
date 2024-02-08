@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"image"
-	"image/color"
 	_ "image/png"
 
 	"github.com/joachimbbp/spritefire/src/util"
@@ -30,13 +29,13 @@ func Database(input string, output string) {
 	}
 
 	//Save Database file
-	file, err := os.Create(filepath.Join(util.DatabasePath, "sprite_color_db"))
+	file, err := os.Create(filepath.Join(util.DatabaseFolderPath, "sprite_color_db"))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
 	encoder := gob.NewEncoder(file)
-	if err := encoder.Encode(spriteColorDatabase); err != nil { //study syntax
+	if err := encoder.Encode(spriteColorDatabase); err != nil {
 		log.Fatal(err)
 	}
 
@@ -63,10 +62,10 @@ func averageColor(imagePath string) util.Rgb {
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			rgbColor := color.RGBAModel.Convert(img.At(x, y)).(color.RGBA) //study this syntax
-			rTotal += int(rgbColor.R)
-			gTotal += int(rgbColor.G)
-			bTotal += int(rgbColor.B)
+			rgbcolor := util.GetRGB(x, y, img) //should work but test
+			rTotal += int(rgbcolor.R)
+			gTotal += int(rgbcolor.G)
+			bTotal += int(rgbcolor.B)
 		}
 	}
 	var average util.Rgb

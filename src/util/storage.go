@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func DecodeColorDatabase(dbPath string) {
+func DecodeColorDatabase(dbPath string) map[string]Rgb {
 	//fmt.Printf("debug in decoding")
 	file, err := os.Open(dbPath)
 	if err != nil {
@@ -22,6 +22,9 @@ func DecodeColorDatabase(dbPath string) {
 		log.Fatal(err)
 	}
 
-	fmt.Println(database)
+	return database
+}
 
+func PrintColorDatabase(dbPath string) {
+	fmt.Println(DecodeColorDatabase(dbPath))
 }
