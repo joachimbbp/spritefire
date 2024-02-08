@@ -2,19 +2,16 @@ package mosaic
 
 import (
 	"bytes"
-	"encoding/gob"
 	"fmt"
 	"image"
 	"log"
 	"math"
-	"os"
-	"path/filepath"
 
 	"github.com/joachimbbp/spritefire/src/util"
 	"gopkg.in/h2non/bimg.v1"
 )
 
-func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) {
+func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) map[int]string {
 	fmt.Printf("Creating canvas for %s\n", imagePath)
 	x_tiles := util.SaveResolutionX / spriteSize
 	y_tiles := util.SaveResolutionY / spriteSize
@@ -46,7 +43,7 @@ func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) {
 	}
 
 	//Save Canvas File
-	file, err := os.Create(filepath.Join(util.CanvasOutput, filepath.Base(imagePath)))
+	/*file, err := os.Create(filepath.Join(util.CanvasOutput, filepath.Base(imagePath)))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,7 +51,9 @@ func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) {
 	encoder := gob.NewEncoder(file)
 	if err := encoder.Encode(canvas); err != nil {
 		log.Fatal(err)
-	}
+	}*/
+
+	return canvas
 
 }
 

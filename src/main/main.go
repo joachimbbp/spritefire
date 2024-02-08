@@ -21,7 +21,7 @@ func main() {
 	switch mode {
 	case "database":
 		dbStart := time.Now()
-		sprite.Database(util.SpriteInput, util.SpriteOutput)
+		sprite.Database(util.SpriteInput, util.SpriteSizes)
 		dbEnd := time.Now()
 		fmt.Printf("database created in %s", dbEnd.Sub(dbStart))
 	case "printdb":
@@ -29,7 +29,7 @@ func main() {
 		util.PrintColorDatabase("/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/database/sprite_color_db")
 	case "resize":
 		rsStart := time.Now()
-		sprite.Resize(util.SpriteInput, util.SpriteOutput)
+		sprite.Resize(util.SpriteInput, util.SpriteSizes)
 		rsEnd := time.Now()
 		fmt.Printf("resizing done in %s", rsEnd.Sub(rsStart))
 	case "canvas":
@@ -37,5 +37,12 @@ func main() {
 		mosaic.Canvas(util.InputStill, util.DatabasePath, util.ResizeResolutions[1])
 		cEnd := time.Now()
 		fmt.Printf("resizing done in %s", cEnd.Sub(cStart))
+	case "draw":
+		dStart := time.Now()
+		sRes := 5
+		//gonna have to open the canvas map here
+		mosaic.Draw(mosaic.Canvas(util.InputStill, util.DatabasePath, util.ResizeResolutions[sRes]), "test_frame", util.ResizeResolutions[sRes])
+		dEnd := time.Now()
+		fmt.Printf("drawn in %s", dEnd.Sub(dStart))
 	}
 }

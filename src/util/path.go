@@ -7,7 +7,7 @@ package util
 // Temp paths for testing and development
 const DatabaseFolderPath = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/database"
 const SpriteInput = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/sprites_512"
-const SpriteOutput = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/sprite_sizes"
+const SpriteSizes = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/sprite_sizes"
 const InputStill = "/Users/joachimpfefferkorn/Documents/GitHub/sprite_mosaic/test_files/test_images/garden_1280x720.png"
 const ScratchOutput = "/Users/joachimpfefferkorn/Documents/GitHub/sprite_mosaic/test_files/scratch"
 const CanvasOutput = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/canvas"
