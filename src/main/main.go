@@ -33,11 +33,6 @@ func main() {
 		sprite.Resize(util.SpriteInput, util.SpriteSizes)
 		rsEnd := time.Now()
 		fmt.Printf("resizing done in %s", rsEnd.Sub(rsStart))
-	case "canvas":
-		cStart := time.Now()
-		mosaic.Canvas(util.InputStill, util.DatabasePath, util.ResizeResolutions[1])
-		cEnd := time.Now()
-		fmt.Printf("resizing done in %s", cEnd.Sub(cStart))
 	case "draw":
 		dStart := time.Now()
 		sRes := 5

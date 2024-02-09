@@ -12,6 +12,6 @@ const InputStill = "/Users/joachimpfefferkorn/Documents/GitHub/sprite_mosaic/tes
 const ScratchOutput = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/scratch"
 const CanvasOutput = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/canvas"
 const DatabasePath = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/database/sprite_color_db"
-const SequencePath = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/test_images/our_planet"
+const SequencePath = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/test_images/GodzillaVsHedorah"
 
 //hacky for now, but it's just for testing

@@ -51,27 +51,21 @@ func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) []util.I
 }
 
 func spriteMatch(cell util.Rgb, spriteColorDbPath string) string {
-	//Copilot refactored from original python code
-	//LOTS of TODO here
-	//Needs 3D binary search
-	//Keeping it this way for now to see how fast Go is even with slow code
-
-	colorDistances := make(map[string]float64)
-
 	database := util.DecodeColorDatabase(spriteColorDbPath)
+
+	closestSprite := "initialized value"
+	shortestColorLength := 17367040.0 // Hard coded for 8-bit
 
 	for entry, sprite := range database {
 		redDistTemp := math.Pow(float64(sprite.R-cell.R), 2)
 		greenDistTemp := math.Pow(float64(sprite.G-cell.G), 2)
 		blueDistTemp := math.Pow(float64(sprite.B-cell.B), 2)
-		colorDistances[entry] = math.Sqrt(redDistTemp + greenDistTemp + blueDistTemp)
-	}
-	closestSprite := "initialized value"
-	shortestColorLength := 17367040.0 // Hard coded for 8-bit
-	for sprite, distance := range colorDistances {
+		distance := math.Sqrt(redDistTemp + greenDistTemp + blueDistTemp)
+
+		// If the calculated distance is less than the current shortest distance, update the shortest distance and closest sprite
 		if distance < shortestColorLength {
 			shortestColorLength = distance
-			closestSprite = sprite // match to proper resolution
+			closestSprite = entry
 		}
 	}
 
