@@ -6,12 +6,13 @@ import (
 	"image"
 	"log"
 	"math"
+	"sort"
 
 	"github.com/joachimbbp/spritefire/src/util"
 	"gopkg.in/h2non/bimg.v1"
 )
 
-func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) map[int]string {
+func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) []util.IndexedSprite {
 	fmt.Printf("Creating canvas for %s\n", imagePath)
 	x_tiles := util.SaveResolutionX / spriteSize
 	y_tiles := util.SaveResolutionY / spriteSize
@@ -31,27 +32,19 @@ func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) map[int]
 	}
 	bounds := imgData.Bounds()
 	index := 0
-	canvas := make(map[int]string)
+	canvas := make([]util.IndexedSprite, x_tiles*y_tiles)
 	fmt.Printf("Matching Sprites\n")
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			rgbaColor := util.GetRGB(x, y, imgData) //imgData maybe bad var name
-			canvas[index] = spriteMatch(rgbaColor, spriteColorDbPath)
-			fmt.Printf("matched %d to %s", index, canvas[index])
+			canvas[index] = util.IndexedSprite{Index: index, Sprite: spriteMatch(rgbaColor, spriteColorDbPath)}
+			fmt.Printf("matched %d to %s", index, canvas[index].Sprite)
 			index++
 		}
 	}
-
-	//Save Canvas File
-	/*file, err := os.Create(filepath.Join(util.CanvasOutput, filepath.Base(imagePath)))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-	encoder := gob.NewEncoder(file)
-	if err := encoder.Encode(canvas); err != nil {
-		log.Fatal(err)
-	}*/
+	sort.Slice(canvas, func(i, j int) bool { //STUDY THIS
+		return canvas[i].Index < canvas[j].Index
+	})
 
 	return canvas
 

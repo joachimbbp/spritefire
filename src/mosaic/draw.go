@@ -15,12 +15,12 @@ import (
 	"github.com/joachimbbp/spritefire/src/util"
 )
 
-func Draw(canvas map[int]string, frameName string, spriteSize int) {
+func Draw(canvas []util.IndexedSprite, frameName string, spriteSize int) {
 	tilePosX, tilePosY := 0, 0
 	mosaic := image.NewRGBA(image.Rect(0, 0, util.SaveResolutionX, util.SaveResolutionY))
 
 	for _, tile := range canvas {
-		currentTileFile, err := os.Open(filepath.Join(util.SpriteSizes, strconv.Itoa(spriteSize), tile))
+		currentTileFile, err := os.Open(filepath.Join(util.SpriteSizes, strconv.Itoa(spriteSize), tile.Sprite))
 		if err != nil {
 			log.Fatal(err)
 		}
