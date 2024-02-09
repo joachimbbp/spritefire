@@ -9,8 +9,9 @@ const DatabaseFolderPath = "/Users/joachimpfefferkorn/Documents/GitHub/spritefir
 const SpriteInput = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/sprites_512"
 const SpriteSizes = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/sprite_sizes"
 const InputStill = "/Users/joachimpfefferkorn/Documents/GitHub/sprite_mosaic/test_files/test_images/garden_1280x720.png"
-const ScratchOutput = "/Users/joachimpfefferkorn/Documents/GitHub/sprite_mosaic/test_files/scratch"
+const ScratchOutput = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/scratch"
 const CanvasOutput = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/canvas"
 const DatabasePath = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/database/sprite_color_db"
+const SequencePath = "/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/test_images/our_planet"
 
 //hacky for now, but it's just for testing

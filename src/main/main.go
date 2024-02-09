@@ -8,6 +8,7 @@ import (
 	"github.com/joachimbbp/spritefire/src/mosaic"
 	"github.com/joachimbbp/spritefire/src/sprite"
 	"github.com/joachimbbp/spritefire/src/util"
+	"github.com/joachimbbp/spritefire/src/video"
 )
 
 func main() {
@@ -44,5 +45,11 @@ func main() {
 		mosaic.Draw(mosaic.Canvas(util.InputStill, util.DatabasePath, util.ResizeResolutions[sRes]), "test_frame", util.ResizeResolutions[sRes])
 		dEnd := time.Now()
 		fmt.Printf("drawn in %s", dEnd.Sub(dStart))
+
+	case "video":
+		vStart := time.Now()
+		video.Sequence(util.SequencePath, util.DatabaseFolderPath, 1)
+		vEnd := time.Now()
+		fmt.Printf("video done in %s", vEnd.Sub(vStart))
 	}
 }

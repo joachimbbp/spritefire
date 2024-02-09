@@ -2,6 +2,7 @@ package mosaic
 
 //Full up GPT nonsense from original Python code
 //Using for testing but PLEASE write a better one later, for the sake of your soul
+//Note also the paths to the actual sprite files (util.SpriteSizes) is pretty hard coded here
 
 import (
 	"image"
