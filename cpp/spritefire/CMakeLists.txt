@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 
-set(SPRITEFIRE_LIB "spritefire_lib")
+set(SPRITEFIRE_LIB "spritefire")
 
-project(SPRITEFIRE_LIB C CXX)
+project(${SPRITEFIRE_LIB} C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -14,5 +14,5 @@ include_directories(src)
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
-add_library(SPRITEFIRE_LIB STATIC ${SOURCES})
+add_library(${SPRITEFIRE_LIB} STATIC ${SOURCES})
 
