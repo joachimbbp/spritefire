@@ -20,5 +20,9 @@
 # Go workspace file
 go.work
 
-Ignore/
+assets/
+output/
 build/
+
+#vscode
+.vscode/
