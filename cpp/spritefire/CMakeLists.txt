@@ -9,9 +9,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-include_directories(include)
-include_directories(src)
+find_package(PNG REQUIRED)
+
+include_directories(include src)
+include_directories(${PNG_INCLUDE_DIRS})
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 add_library(${SPRITEFIRE_LIB} STATIC ${SOURCES})
+
+target_link_libraries(${SPRITEFIRE_LIB} ${PNG_LIBRARIES})
