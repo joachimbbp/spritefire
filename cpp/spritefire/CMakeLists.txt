@@ -15,4 +15,3 @@ include_directories(src)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 add_library(${SPRITEFIRE_LIB} STATIC ${SOURCES})
-
