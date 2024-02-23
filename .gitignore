@@ -22,3 +22,6 @@ go.work
 
 Ignore/
 build/
+.DS_Store
+
+.vscode/
