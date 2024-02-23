@@ -99,8 +99,7 @@ class std_error
         return std::string(buf);
 #else
         /* GNU variant can return a pointer to static buffer instead of buf */
-        int result = strerror_r(errnum, buf, ERRBUF_SIZE);
-        return std::string(buf);
+        return std::string(strerror_r(errnum, buf, ERRBUF_SIZE));
 #endif
 #endif
 
