@@ -38,81 +38,76 @@
 
 #define HAVE_STRERROR_S 1
 #else
-#undef  HAVE_STRERROR_S
+#undef HAVE_STRERROR_S
 #endif
 
-#include <string>
-#include <stdexcept>
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
+#include <stdexcept>
+#include <string>
 
-namespace png
-{
+namespace png {
 
+/**
+ * \brief Exception class to represent runtime errors related to
+ * png++ operation.
+ */
+class error
+    : public std::runtime_error {
+   public:
     /**
-     * \brief Exception class to represent runtime errors related to
-     * png++ operation.
+     * \param  message  error description
      */
-    class error
-        : public std::runtime_error
-    {
-    public:
-        /**
-         * \param  message  error description
-         */
-        explicit error(std::string const& message)
-            : std::runtime_error(message)
-        {
-        }
-    };
+    explicit error(std::string const& message)
+        : std::runtime_error(message) {
+    }
+};
 
+/**
+ * \brief Exception class to represent standard library errors
+ * (generally IO).
+ *
+ * \see  reader, writer
+ */
+class std_error
+    : public std::runtime_error {
+   public:
     /**
-     * \brief Exception class to represent standard library errors
-     * (generally IO).
+     * Constructs an std_error object.  The \a message string is
+     * appended with <tt>": "</tt> and the error description as
+     * returned by \c strerror(\a error).
      *
-     * \see  reader, writer
+     * \param  message  error description
+     * \param  error    error number
      */
-    class std_error
-        : public std::runtime_error
-    {
-    public:
-        /**
-         * Constructs an std_error object.  The \a message string is
-         * appended with <tt>": "</tt> and the error description as
-         * returned by \c strerror(\a error).
-         *
-         * \param  message  error description
-         * \param  error    error number
-         */
-        explicit std_error(std::string const& message, int errnum = errno)
-            : std::runtime_error((message + ": ") + thread_safe_strerror(errnum))
-        {
-        }
+    explicit std_error(std::string const& message, int errnum = errno)
+        : std::runtime_error((message + ": ") + thread_safe_strerror(errnum)) {
+    }
 
-    protected:
-        static std::string thread_safe_strerror(int errnum)
-        {
+   protected:
+    static std::string thread_safe_strerror(int errnum) {
 #define ERRBUF_SIZE 512
-            char buf[ERRBUF_SIZE] = { 0 };
+        char buf[ERRBUF_SIZE] = {0};
 
 #ifdef HAVE_STRERROR_S
-            strerror_s(buf, ERRBUF_SIZE, errnum);
-            return std::string(buf);
+        strerror_s(buf, ERRBUF_SIZE, errnum);
+        return std::string(buf);
 #else
 #if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE
-            strerror_r(errnum, buf, ERRBUF_SIZE);
-            return std::string(buf);
+        strerror_r(errnum, buf, ERRBUF_SIZE);
+        return std::string(buf);
 #else
-            /* GNU variant can return a pointer to static buffer instead of buf */
-            return std::string(strerror_r(errnum, buf, ERRBUF_SIZE));
+        /* GNU variant can return a pointer to static buffer instead of buf */
+        int result = strerror_r(errnum, buf, ERRBUF_SIZE);
+        return std::string(buf);
 #endif
 #endif
 
 #undef ERRBUF_SIZE
-        }
-    };
+    }
+};
 
-} // namespace png
+}  // namespace png
 
-#endif // PNGPP_ERROR_HPP_INCLUDED
+#endif  // PNGPP_ERROR_HPP_INCLUDED
