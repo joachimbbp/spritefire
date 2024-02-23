@@ -1,9 +1,12 @@
 #pragma once
 
 #include <png++/png.hpp>
+
 #include "point.h"
 
-struct RGBColor { int r, g, b; };
+struct RGBColor {
+    int r, g, b;
+};
 
 struct RGBAColor {
     RGBColor rgb;

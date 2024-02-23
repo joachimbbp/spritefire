@@ -5,7 +5,7 @@
 // Currently, below constants MUST be locked.
 // The program must take in a 1280x720 image and output a 3840x2160 mosaic.
 const int INPUT_RESOLUTION_X = 1280;
-const int INPUT_RESOLUTION_Y = 720; 
+const int INPUT_RESOLUTION_Y = 720;
 const int SAVE_RESOLUTION_X = 3840;
 const int SAVE_RESOLUTION_Y = 2160;
 

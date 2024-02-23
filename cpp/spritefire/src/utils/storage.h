@@ -2,6 +2,7 @@
 
 #include <map>
 #include <string>
+
 #include "color.h"
 
 std::map<std::string, RGBColor> decodeColorDb(std::string dbPath);

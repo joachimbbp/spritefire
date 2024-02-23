@@ -1,8 +1,10 @@
+#include "storage.h"
+
 #include <fstream>
 #include <map>
 #include <string>
+
 #include "color.h"
-#include "storage.h"
 
 std::map<std::string, RGBColor> decodeColorDb(std::string dbPath) {
     std::ifstream fin(dbPath, std::ios::binary);
@@ -19,7 +21,7 @@ std::map<std::string, RGBColor> decodeColorDb(std::string dbPath) {
 
 void printColorDb(std::string dbPath) {
     auto db = decodeColorDb(dbPath);
-    for (auto const& [key, val] : db) {
-        printf("key: %s, r: %d, g: %d, b: %d\n", key.c_str(), val.r, val.g, val.b);
+    for (auto i = db.begin(); i != db.end(); i++) {
+        printf("key: %s, r: %d, g: %d, b: %d\n", i->first.c_str(), i->second.r, i->second.g, i->second.b);
     }
 }
