@@ -4,6 +4,16 @@ Download sprites here
 
 ## Instructions
 
-1. Go to the `cpp` folder
-2. Create a build folder
-3. Call
+Install libpng:
+
+```
+brew install libpng
+```
+
+Build the library:
+
+```
+mkdir build && cd build
+cmake ..
+cmake --build . --config Release
+```
