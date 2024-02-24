@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-set(OpenCV_DIR /Users/pbannier/Desktop/opencv-4.9.0/build)
 find_package(OpenCV REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})

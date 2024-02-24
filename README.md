@@ -4,16 +4,14 @@ Download sprites here
 
 ## Instructions
 
-Install libpng:
+1. Install OpenCV, by following the instructions [here](https://docs.opencv.org/4.x/index.html).
 
-```
-brew install libpng
-```
+2. Build OpenCV.
 
-Build the library:
+3. Build the library:
 
 ```
 mkdir build && cd build
-cmake ..
+cmake -DOpenCV_DIR=/path/to/opencv/build ..
 cmake --build . --config Release
 ```
