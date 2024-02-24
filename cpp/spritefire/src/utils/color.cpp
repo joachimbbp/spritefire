@@ -1,17 +1,17 @@
 #include "color.h"
 
-#include <png++/png.hpp>
+#include <opencv2/opencv.hpp>
 
-#include "point.h"
+using namespace cv;
 
-RGBColor getRGB(Point point, png::image<png::rgba_pixel> image) {
-    png::rgba_pixel pixel = image[point.y][point.x];
-    return RGBColor{pixel.red, pixel.green, pixel.blue};
+RGBColor getRGB(Point point, Mat& image) {
+    Vec3b pixel = image.at<Vec3b>(point.y, point.x);
+    return RGBColor{pixel[2], pixel[1], pixel[0]};
 }
 
-RGBAColor getRGBA(Point point, png::image<png::rgba_pixel> image) {
-    png::rgba_pixel pixel = image[point.y][point.x];
+RGBAColor getRGBA(Point point, Mat& image) {
+    Vec4b pixel = image.at<Vec4b>(point.y, point.x);
     return RGBAColor{
-        RGBColor{pixel.red, pixel.green, pixel.blue},
-        static_cast<float>(pixel.alpha)};
+        RGBColor{pixel[2], pixel[1], pixel[0]},
+        static_cast<float>(pixel[3])};
 }
