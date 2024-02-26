@@ -1,8 +1,8 @@
 #pragma once
 
-#include <png++/png.hpp>
+#include <opencv2/opencv.hpp>
 
-#include "point.h"
+using namespace cv;
 
 struct RGBColor {
     int r, g, b;
@@ -13,5 +13,5 @@ struct RGBAColor {
     float a;
 };
 
-RGBColor getRGB(Point point, png::image<png::rgba_pixel> image);
-RGBAColor getRGBA(Point point, png::image<png::rgba_pixel> image);
+RGBColor getRGB(Point point, Mat& image);
+RGBAColor getRGBA(Point point, Mat& image);
