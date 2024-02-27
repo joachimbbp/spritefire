@@ -8,14 +8,13 @@ import (
 )
 
 func DecodeColorDatabase(dbPath string) map[string]Rgb {
-	//fmt.Printf("debug in decoding")
 	file, err := os.Open(dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
 
-	var database map[string]Rgb //no util. needed as we're in that package?
+	var database map[string]Rgb
 
 	decoder := gob.NewDecoder(file)
 	if err := decoder.Decode(&database); err != nil {
