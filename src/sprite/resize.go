@@ -11,7 +11,8 @@ import (
 )
 
 func Resize(input string, output string) {
-	fmt.Println("Resizing sprites")
+	fmt.Println("Resizing sprites ...")
+
 	for i, resolution := range util.ResizeResolutions {
 		sprites, readDirErr := os.ReadDir(input)
 		if readDirErr != nil {
@@ -20,26 +21,33 @@ func Resize(input string, output string) {
 
 		fmt.Printf("resizing for resolution %d: %d\n", i, resolution)
 		resSubfolder := filepath.Join(output, fmt.Sprint(resolution))
-		fmt.Printf("folder created: %s\n", resSubfolder) //check formatting
+
+		fmt.Printf("folder created: %s\n", resSubfolder)
 		mkdirErr := os.Mkdir(resSubfolder, 0755)
 		if mkdirErr != nil {
 			log.Fatal(mkdirErr)
 		}
-		//perhaps un-nesting this will make it faster...
+
 		for _, sprite := range sprites {
 			fmt.Printf("resizing %s to resolution %d\n", sprite, resolution)
+
 			spritePath := filepath.Join(input, sprite.Name())
+
 			buffer, err := bimg.Read(spritePath)
 			if err != nil {
 				log.Fatal(err)
 			}
+
 			thumbnailImage, err := bimg.NewImage(buffer).Thumbnail(resolution)
 			if err != nil {
 				log.Fatal(err)
 			}
+
 			fmt.Printf("Opened %s\n", sprite)
 			fmt.Printf("Image created saved at size %d\n", resolution)
-			err = bimg.Write(output+"/"+fmt.Sprint(resolution)+"/"+sprite.Name(), thumbnailImage)
+
+			outPath := output + "/" + fmt.Sprint(resolution) + "/" + sprite.Name()
+			err = bimg.Write(outPath, thumbnailImage)
 			if err != nil {
 				log.Fatal(err)
 			}
