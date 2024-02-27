@@ -32,8 +32,8 @@ func Draw(canvas []util.IndexedSprite, frameName string, spriteSize int) {
 			log.Fatal(err)
 		}
 
-		r := image.Rect(tilePosX, tilePosY, tilePosX+spriteSize, tilePosY+spriteSize)
-		draw.Draw(mosaic, r, currentTile, image.Point{}, draw.Src)
+		currentSprite := image.Rect(tilePosX, tilePosY, tilePosX+spriteSize, tilePosY+spriteSize)
+		draw.Draw(mosaic, currentSprite, currentTile, image.Point{}, draw.Src)
 
 		if tilePosX >= util.SaveResolutionX-spriteSize {
 			tilePosX = 0
@@ -43,7 +43,7 @@ func Draw(canvas []util.IndexedSprite, frameName string, spriteSize int) {
 		}
 	}
 
-	outputFile, err := os.Create(filepath.Join(util.ScratchOutput, frameName+".png"))
+	outputFile, err := os.Create(filepath.Join(util.ScratchOutput, frameName))
 	if err != nil {
 		log.Fatal(err)
 	}
