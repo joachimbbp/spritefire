@@ -21,8 +21,9 @@ func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int
 		}
 
 		framePath := filepath.Join(sequencePath, frame.Name())
-		canvas := mosaic.Canvas(framePath, util.DatabasePath, util.ResizeResolutions[spriteSizeIndex])
-		mosaic.Draw(canvas, frame.Name(), util.ResizeResolutions[spriteSizeIndex])
+		//canvas := mosaic.Canvas(framePath, util.DatabasePath, util.ResizeResolutions[spriteSizeIndex])
+		//mosaic.Draw(canvas, frame.Name(), util.ResizeResolutions[spriteSizeIndex])
+		mosaic.MatchAndDraw(framePath, util.DatabasePath, util.ResizeResolutions[5])
 	}
 
 }

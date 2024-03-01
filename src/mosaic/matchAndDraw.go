@@ -1,7 +1,9 @@
 package mosaic
 
 import (
+	"fmt"
 	"math"
+	"path/filepath"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/joachimbbp/spritefire/src/util"
@@ -9,7 +11,7 @@ import (
 
 func MatchAndDraw(sourceImagePath string, spriteColorDbPath string, spriteSize int) {
 	util.CreateIfNotExist(util.ImageOutput) //even though presently you can't save there with TakeScreenshot
-	frameName := "defautlt_output_name.png"
+	frameName := filepath.Base(sourceImagePath)
 
 	db := util.DecodeColorDatabase(spriteColorDbPath)
 
@@ -38,17 +40,20 @@ func MatchAndDraw(sourceImagePath string, spriteColorDbPath string, spriteSize i
 			g := int(color.G)
 			b := int(color.B)
 			tile := matchTileToSprite(r, g, b, db)
-			tileTexture := rl.LoadTexture(tile)
+			tileTexture := rl.LoadTexture(util.SpriteSizes + "/" + fmt.Sprint(spriteSize) + "/" + tile)
 			//and draw it to the screen with raylib
 			rl.DrawTexture(tileTexture, oX, oY, rl.White)
+
 			if oX >= int32(bounds) {
 				oX = 0
 				oY += int32(spriteSize)
 			} else {
 				oX += int32(spriteSize)
 			}
+
 		}
 	}
+	rl.TakeScreenshot(frameName)
 }
 
 func matchTileToSprite(r int, g int, b int, spriteColorDb map[string]util.Rgb) string {
