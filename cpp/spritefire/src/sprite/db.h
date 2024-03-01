@@ -1,5 +1,6 @@
 #include <string>
-#include "utils/color.h" //red squiggles are vscode issue
+#include "../utils/color.h"
 
-void database(const std::string &input, const std::string &output);
-RGBColor averageColor(const std::string &imagePath);
+void CreateDatabase(const std::string &spriteFolderPath, const std::string &databaseSavePath);
+RGBColor GetAverageColor(const std::string &imagePath);
+void PrintSpriteDatabase(const std::unordered_map<std::string, RGBColor> &spriteDb);

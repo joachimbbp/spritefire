@@ -43,7 +43,7 @@ func main() {
 
 	case "video":
 		vStart := time.Now()
-		video.Sequence(util.SequencePath, util.DatabaseFolderPath, 1)
+		video.Sequence(util.SequencePath, util.DatabaseFolderPath, 7)
 		vEnd := time.Now()
 		fmt.Printf("video done in %s", vEnd.Sub(vStart))
 	}

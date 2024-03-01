@@ -1,54 +1,50 @@
-// for now we will write without the png++ integration
-// Pierre is working on getting that going
-// To test, let's just start with building the directory
-// and looping through everything within the subfolder
 #include <filesystem>
 #include <iostream>
 #include <cstdio>
 #include <map>
-#include <opencv/opencv4>
+#include <opencv2/opencv.hpp>
 #include "utils/color.h"
-/*Pierre feedback
-input and output are bad names
-use printf, not cout\
-copy paste function signature into db.h
-parameterize to put curly brace on same line
-*/
 
-cv::Vec3b computeAverageColor(const cv::Mat &img)
-{ // straight GPT
-    cv::Scalar sum = cv::sum(img);
+cv::Vec3i computeAverageColor(const cv::Mat &img)
+{
+    cv::Scalar sum = cv::sum(img); // should be the total of each value (if issues, check docs)
     double totalPixels = img.total();
-    return cv::Vec3b(sum[0] / totalPixels, sum[1] / totalPixels, sum[2] / totalPixels);
+    return cv::Vec3i(sum[0] / totalPixels, sum[1] / totalPixels, sum[2] / totalPixels);
 }
 
-utils::RGBColor getAverageColor(const std::string &imagePath) // perhaps reverse order?
+RGBColor GetAverageColor(const std::string &imagePath)
 {
-    // split this into two functions: one seperat
-    cv::Mat img = cv.imread(imagePath, cv::IMREAD_COLOR);
-    cv::Vec3b averageColor = computeAverageColor(&img);
-    return utils::RGBColor{
-        avereageColor[2], averageColor[1], averageColor[0] // due to BRG
+    cv::Mat img = cv::imread(imagePath, cv::IMREAD_COLOR); // Q: so we pass in the address but this function takes the actual string? Something happens behind the scenes?
+    cv::Vec3i averageColor = computeAverageColor(img);
+    return RGBColor{
+        averageColor[2], averageColor[1], averageColor[0] // reversed due to openCV BRG convention
     };
 }
 
-void createDatabase(const std::string &spriteFolderPath, const std::string &databaseSavePath)
+void PrintSpriteDatabase(const std::unordered_map<std::string, RGBColor> &spriteDb)
+{
+    // gpt written
+    for (const auto &pair : spriteDb)
+    {
+        printf("File: %s, Average color: %d, %d, %d\n", pair.first.c_str(), pair.second.r, pair.second.g, pair.second.b);
+    }
+}
+
+void CreateDatabase(const std::string &spriteFolderPath, const std::string &databaseSavePath)
 {
     printf("Input folder: %s, Output destination: %s\n", spriteFolderPath, databaseSavePath);
-    std::unordered_map<std::string, util.RGB> spriteColorAverage;
+    std::unordered_map<std::string, RGBColor> spriteDb;
 
     try
     {
-        for (const auto &entry : filesystem::directory_iterator(spriteFolderPath))
+        for (const auto &entry : std::filesystem::directory_iterator(spriteFolderPath))
         {
-            // to debug, this prints out the filename
-            std::string spriteName = entry.path().filename();
-            printf("%s", spriteName);
-            spriteColorAverages[spriteName] = averageColor(entry.path());
+            spriteDb[entry.path().filename()] = GetAverageColor(entry.path());
         }
     }
-    catch (filesystem::filesystem_error &e)
+    catch (std::filesystem::filesystem_error &e)
     {
         printf("%s", e.what());
     }
+    PrintSpriteDatabase(spriteDb);
 }
