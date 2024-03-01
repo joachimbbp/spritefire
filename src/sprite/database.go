@@ -14,8 +14,10 @@ import (
 )
 
 func Database(input string, output string) {
+	util.CreateIfNotExist(output)
+
 	fmt.Println("Building database ...")
-	fmt.Println("Converting sprites in %s and saving to output %s", input, output)
+	fmt.Printf("Converting sprites in %s and saving to output %s", input, output)
 
 	spriteColorDatabase := make(map[string]util.Rgb)
 

@@ -1,15 +1,35 @@
 package util
 
-const BasePath = "../../assets"
+import (
+	"fmt"
+	"os"
+)
 
-const DatabaseFolderPath = BasePath + "/database"
-const DatabasePath = BasePath + "/database/sprite_color_db"
+const AssetBasePath = "../../assets"
+const OutputBasePath = "../../output"
 
-const SpriteInput = BasePath + "/sprites_512"
-const SpriteSizes = BasePath + "/sprite_sizes"
-const ScratchOutput = BasePath + "/scratch"
+const DatabaseFolderPath = OutputBasePath + "/database"
+const DatabasePath = OutputBasePath + "/database/sprite_color_db"
+
+const SpriteInput = AssetBasePath + "/sprites_512"
+const SpriteSizes = AssetBasePath + "/sprite_sizes"
+const ScratchOutput = AssetBasePath + "/scratch"
 
 // const CanvasOutput = BasePath + "/canvas"
 
-const InputStill = BasePath + "/test_images/garden_1280x720.png"
-const SequencePath = BasePath + "/test_images/GodzillaVsHedorah"
+const InputStill = AssetBasePath + "/test_images/garden_1280x720.png"
+const SequencePath = AssetBasePath + "/test_images/GodzillaVsHedorah"
+
+func CreateIfNotExist(dir string) {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err := os.MkdirAll(dir, 0755)
+		if err != nil {
+			fmt.Println("Error creating directory", dir)
+			fmt.Println(err)
+		} else {
+			fmt.Println("directory created: ", dir)
+		}
+	} else {
+		fmt.Println("directory exists", dir)
+	}
+}

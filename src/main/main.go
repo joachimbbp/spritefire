@@ -25,7 +25,7 @@ func main() {
 			"database creation",
 			sprite.Database,
 			util.SpriteInput,
-			util.SpriteSizes,
+			util.DatabaseFolderPath,
 		)
 
 	case "printdb":
