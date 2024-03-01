@@ -12,8 +12,8 @@ const DatabaseFolderPath = OutputBasePath + "/database"
 const DatabasePath = OutputBasePath + "/database/sprite_color_db"
 
 const SpriteInput = AssetBasePath + "/sprites_512"
-const SpriteSizes = AssetBasePath + "/sprite_sizes"
-const ScratchOutput = AssetBasePath + "/scratch"
+const SpriteSizes = OutputBasePath + "/sprite_sizes"
+const ImageOutput = OutputBasePath + "/image_output"
 
 // const CanvasOutput = BasePath + "/canvas"
 

@@ -13,15 +13,17 @@ import (
 	"github.com/joachimbbp/spritefire/src/util"
 )
 
-func Database(input string, output string) {
-	util.CreateIfNotExist(output)
+//TODO: multithread in goroutines
+
+func Database(spriteFolder string, outputFolder string) {
+	util.CreateIfNotExist(outputFolder)
 
 	fmt.Println("Building database ...")
-	fmt.Printf("Converting sprites in %s and saving to output %s", input, output)
+	fmt.Printf("Converting sprites in %s and saving to output %s", spriteFolder, outputFolder)
 
 	spriteColorDatabase := make(map[string]util.Rgb)
 
-	sprites, err := os.ReadDir(input)
+	sprites, err := os.ReadDir(spriteFolder)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,7 +32,7 @@ func Database(input string, output string) {
 			if filepath.Ext(entry.Name()) != ".png" {
 				continue
 			}
-			filePath := filepath.Join(input, entry.Name())
+			filePath := filepath.Join(spriteFolder, entry.Name())
 			spriteColorDatabase[entry.Name()] = averageColor(filePath)
 		}
 	}

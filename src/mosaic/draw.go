@@ -43,7 +43,9 @@ func Draw(canvas []util.IndexedSprite, frameName string, spriteSize int) {
 		}
 	}
 
-	outputFile, err := os.Create(filepath.Join(util.ScratchOutput, frameName))
+	util.CreateIfNotExist(util.ImageOutput)
+
+	outputFile, err := os.Create(filepath.Join(util.ImageOutput, frameName))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -48,11 +48,11 @@ func main() {
 			"draw canvas",
 			mosaic.Draw,
 			canvas,
-			"test_frame",
+			"output_frame.png", //dont love this but it'll do for now
 			util.ResizeResolutions[sRes],
 		)
 
-	case "video":
+	case "video": //not tested yet after Pierre's refactor
 		util.TimeIt(
 			"generate video",
 			video.Sequence,

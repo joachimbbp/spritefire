@@ -10,17 +10,20 @@ import (
 	"gopkg.in/h2non/bimg.v1"
 )
 
-func Resize(input string, output string) {
+//TODO run in parallel with goroutines or (better yet) raylib
+
+func Resize(spriteFolder string, resizedFolder string) {
+	util.CreateIfNotExist(resizedFolder)
 	fmt.Println("Resizing sprites ...")
 
 	for i, resolution := range util.ResizeResolutions {
-		sprites, readDirErr := os.ReadDir(input)
+		sprites, readDirErr := os.ReadDir(spriteFolder)
 		if readDirErr != nil {
 			log.Fatal(readDirErr)
 		}
 
 		fmt.Printf("resizing for resolution %d: %d\n", i, resolution)
-		resSubfolder := filepath.Join(output, fmt.Sprint(resolution))
+		resSubfolder := filepath.Join(resizedFolder, fmt.Sprint(resolution))
 
 		fmt.Printf("folder created: %s\n", resSubfolder)
 		mkdirErr := os.Mkdir(resSubfolder, 0755)
@@ -31,7 +34,7 @@ func Resize(input string, output string) {
 		for _, sprite := range sprites {
 			fmt.Printf("resizing %s to resolution %d\n", sprite, resolution)
 
-			spritePath := filepath.Join(input, sprite.Name())
+			spritePath := filepath.Join(spriteFolder, sprite.Name())
 
 			buffer, err := bimg.Read(spritePath)
 			if err != nil {
@@ -46,7 +49,7 @@ func Resize(input string, output string) {
 			fmt.Printf("Opened %s\n", sprite)
 			fmt.Printf("Image created saved at size %d\n", resolution)
 
-			outPath := output + "/" + fmt.Sprint(resolution) + "/" + sprite.Name()
+			outPath := resizedFolder + "/" + fmt.Sprint(resolution) + "/" + sprite.Name()
 			err = bimg.Write(outPath, thumbnailImage)
 			if err != nil {
 				log.Fatal(err)
