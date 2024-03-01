@@ -14,6 +14,7 @@ import (
 
 func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) []util.IndexedSprite {
 	fmt.Printf("Creating canvas for %s ...\n", imagePath)
+	database := util.DecodeColorDatabase(spriteColorDbPath)
 
 	x_tiles := util.SaveResolutionX / spriteSize
 	y_tiles := util.SaveResolutionY / spriteSize
@@ -42,7 +43,7 @@ func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) []util.I
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			rgbaColor := util.GetRGB(x, y, imgData)
-			canvas[index] = util.IndexedSprite{Index: index, Sprite: spriteMatch(rgbaColor, spriteColorDbPath)}
+			canvas[index] = util.IndexedSprite{Index: index, Sprite: spriteMatch(rgbaColor, database)}
 			fmt.Printf("matched %d to %s", index, canvas[index].Sprite)
 			index++
 		}
@@ -55,8 +56,7 @@ func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) []util.I
 
 }
 
-func spriteMatch(cell util.Rgb, spriteColorDbPath string) string {
-	database := util.DecodeColorDatabase(spriteColorDbPath)
+func spriteMatch(cell util.Rgb, database map[string]util.Rgb) string {
 
 	closestSprite := "initialized value"
 

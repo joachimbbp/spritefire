@@ -1,0 +1,55 @@
+package mosaic
+
+import (
+	"math"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/joachimbbp/spritefire/src/util"
+)
+
+func MatchAndDraw(sourceImagePath string, spriteColorDbPath string, spriteSize int) {
+	// load the db
+	db := util.DecodeColorDatabase(spriteColorDbPath)
+
+	//load in the image and resize it to number of tiles
+	xTiles := int32(util.SaveResolutionX / spriteSize)
+	yTiles := int32(util.SaveResolutionY / spriteSize)
+	sourceImage := rl.LoadImage(sourceImagePath)
+	defer rl.UnloadImage(sourceImage)
+	rl.ImageResize(sourceImage, xTiles, yTiles)
+	sourceColorData := rl.LoadImageColors(sourceImage)
+
+	//for every pixel
+	for y := int32(0); y < sourceImage.Height; y++ {
+		for x := int32(0); x < sourceImage.Width; x++ {
+			//find the closest sprite
+			color := sourceColorData[y*sourceImage.Width+x] //how does this work???
+			r := int(color.R)
+			g := int(color.G)
+			b := int(color.B)
+			tile := matchTileToSprite(r, g, b, db)
+			//and draw it to the screen with raylib
+
+		}
+	}
+
+}
+
+func matchTileToSprite(r int, g int, b int, spriteColorDb map[string]util.Rgb) string {
+	closestSprite := "initialized value"
+	shortestColorLength := math.Sqrt(3 * math.Pow(255, 2))
+	for entry, sprite := range spriteColorDb {
+		redDistTemp := math.Pow(float64(sprite.R-r), 2)
+		greenDistTemp := math.Pow(float64(sprite.G-g), 2)
+		blueDistTemp := math.Pow(float64(sprite.B-b), 2)
+		distance := math.Sqrt(redDistTemp + greenDistTemp + blueDistTemp)
+
+		if distance < shortestColorLength {
+			shortestColorLength = distance
+			closestSprite = entry
+		}
+
+	}
+	return closestSprite
+
+}
