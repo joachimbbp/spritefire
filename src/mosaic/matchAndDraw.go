@@ -8,7 +8,9 @@ import (
 )
 
 func MatchAndDraw(sourceImagePath string, spriteColorDbPath string, spriteSize int) {
-	// load the db
+	util.CreateIfNotExist(util.ImageOutput) //even though presently you can't save there with TakeScreenshot
+	frameName := "defautlt_output_name.png"
+
 	db := util.DecodeColorDatabase(spriteColorDbPath)
 
 	//load in the image and resize it to number of tiles
@@ -19,20 +21,34 @@ func MatchAndDraw(sourceImagePath string, spriteColorDbPath string, spriteSize i
 	rl.ImageResize(sourceImage, xTiles, yTiles)
 	sourceColorData := rl.LoadImageColors(sourceImage)
 
+	rl.InitWindow(util.SaveResolutionX, util.SaveResolutionY, frameName)
+	defer rl.CloseWindow()
+	rl.BeginDrawing()
+	oX := int32(0)
+	oY := int32(0)
+
+	bounds := util.SaveResolutionX - spriteSize
+
 	//for every pixel
 	for y := int32(0); y < sourceImage.Height; y++ {
 		for x := int32(0); x < sourceImage.Width; x++ {
 			//find the closest sprite
-			color := sourceColorData[y*sourceImage.Width+x] //how does this work???
+			color := sourceColorData[y*sourceImage.Width+x] //how does this work??? it's from GPT
 			r := int(color.R)
 			g := int(color.G)
 			b := int(color.B)
 			tile := matchTileToSprite(r, g, b, db)
+			tileTexture := rl.LoadTexture(tile)
 			//and draw it to the screen with raylib
-
+			rl.DrawTexture(tileTexture, oX, oY, rl.White)
+			if oX >= int32(bounds) {
+				oX = 0
+				oY += int32(spriteSize)
+			} else {
+				oX += int32(spriteSize)
+			}
 		}
 	}
-
 }
 
 func matchTileToSprite(r int, g int, b int, spriteColorDb map[string]util.Rgb) string {
@@ -51,5 +67,4 @@ func matchTileToSprite(r int, g int, b int, spriteColorDb map[string]util.Rgb) s
 
 	}
 	return closestSprite
-
 }

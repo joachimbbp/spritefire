@@ -51,6 +51,14 @@ func main() {
 			"output_frame.png", //dont love this but it'll do for now
 			util.ResizeResolutions[sRes],
 		)
+	case "draw new":
+		util.TimeIt(
+			"draw and match at the same time",
+			mosaic.MatchAndDraw,
+			util.InputStill,
+			util.DatabasePath,
+			util.ResizeResolutions[5],
+		)
 
 	case "video": //not tested yet after Pierre's refactor
 		util.TimeIt(
