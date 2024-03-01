@@ -1,58 +1,39 @@
 package mosaic
 
-//Full up GPT nonsense from original Python code
-//Using for testing but PLEASE write a better one later, for the sake of your soul
-//Note also the paths to the actual sprite files (util.SpriteSizes) is pretty hard coded here
-
 import (
-	"image"
-	"image/draw"
-	"image/png"
-	"log"
-	"os"
 	"path/filepath"
 	"strconv"
 
+	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/joachimbbp/spritefire/src/util"
 )
 
 func Draw(canvas []util.IndexedSprite, frameName string, spriteSize int) {
-	tilePosX, tilePosY := 0, 0
-	mosaic := image.NewRGBA(image.Rect(0, 0, util.SaveResolutionX, util.SaveResolutionY))
-
-	for _, tile := range canvas {
-		currentTileFile, err := os.Open(filepath.Join(util.SpriteSizes, strconv.Itoa(spriteSize), tile.Sprite))
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer currentTileFile.Close()
-
-		currentTile, _, err := image.Decode(currentTileFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		currentSprite := image.Rect(tilePosX, tilePosY, tilePosX+spriteSize, tilePosY+spriteSize)
-		draw.Draw(mosaic, currentSprite, currentTile, image.Point{}, draw.Src)
-
-		if tilePosX >= util.SaveResolutionX-spriteSize {
-			tilePosX = 0
-			tilePosY += spriteSize
-		} else {
-			tilePosX += spriteSize
-		}
-	}
-
 	util.CreateIfNotExist(util.ImageOutput)
 
-	outputFile, err := os.Create(filepath.Join(util.ImageOutput, frameName))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer outputFile.Close()
+	oX := int32(0)
+	oY := int32(0)
 
-	err = png.Encode(outputFile, mosaic)
-	if err != nil {
-		log.Fatal(err)
+	rl.InitWindow(util.SaveResolutionX, util.SaveResolutionY, frameName)
+	defer rl.CloseWindow()
+
+	for _, tile := range canvas {
+
+		tilePath := filepath.Join(util.SpriteSizes, strconv.Itoa(spriteSize), tile.Sprite)
+		tileTexture := rl.LoadTexture(tilePath)
+
+		rl.BeginDrawing()
+		rl.DrawTexture(tileTexture, oX, oY, rl.White)
+
+		bounds := util.SaveResolutionX - spriteSize
+		if oX >= int32(bounds) {
+			oX = 0
+			oY += int32(spriteSize)
+		} else {
+			oX += int32(spriteSize)
+		}
 	}
+
+	rl.TakeScreenshot(frameName) //no matter what I do this saves to the main dir ugh
+	//might have to change the source code to fix this ngl
 }
