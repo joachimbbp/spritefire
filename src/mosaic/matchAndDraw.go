@@ -15,6 +15,7 @@ func MatchAndDraw(sourceImagePath string, spriteColorDbPath string, spriteSize i
 	frameName := filepath.Base(sourceImagePath)
 
 	db := util.DecodeColorDatabase(spriteColorDbPath)
+	tree := buildSearchTree(db)
 
 	//load in the image and resize it to number of tiles
 	xTiles := int32(util.SaveResolutionX / spriteSize)
@@ -40,7 +41,8 @@ func MatchAndDraw(sourceImagePath string, spriteColorDbPath string, spriteSize i
 			r := int(color.R)
 			g := int(color.G)
 			b := int(color.B)
-			tile := matchTileToSprite(r, g, b, db)
+			//tile := naiveMatchTileToSprite(r, g, b, db)
+			tile := kdMatchTileToSprite(r, g, b, tree)
 			tileTexture := rl.LoadTexture(util.SpriteSizes + "/" + fmt.Sprint(spriteSize) + "/" + tile)
 			//and draw it to the screen with raylib
 			rl.DrawTexture(tileTexture, oX, oY, rl.White)
@@ -57,8 +59,8 @@ func MatchAndDraw(sourceImagePath string, spriteColorDbPath string, spriteSize i
 	rl.TakeScreenshot(frameName)
 }
 
-func matchTileToSprite(r int, g int, b int, spriteColorDb map[string]util.Rgb) string {
-	closestSprite := "initialized value"
+func naiveMatchTileToSprite(r int, g int, b int, spriteColorDb map[string]util.Rgb) string {
+	closestSprite := "initialized value naive"
 	shortestColorLength := math.Sqrt(3 * math.Pow(255, 2))
 	for entry, sprite := range spriteColorDb {
 		redDistTemp := math.Pow(float64(sprite.R-r), 2)
@@ -84,4 +86,12 @@ func buildSearchTree(spriteColorDB map[string]util.Rgb) *KDTree {
 		tree.Insert(color, spriteName)
 	}
 	return &tree
+}
+
+func kdMatchTileToSprite(r int, g int, b int, searchTree *KDTree) string {
+	color := util.Rgb{R: r, G: g, B: b}
+
+	nearestNode := searchTree.FindNearestNeighbor(color)
+	return nearestNode.spriteName
+
 }
