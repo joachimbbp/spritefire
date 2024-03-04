@@ -1,13 +1,16 @@
+// Deprecating to two seperate files: match and raylibdraw
+// currently does not work with concurency in raylib
+
 package mosaic
 
 import (
-	"fmt"
 	"image/color"
 	"math"
 	"path/filepath"
 	"sync"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/joachimbbp/spritefire/src/search"
 	"github.com/joachimbbp/spritefire/src/util"
 )
 
@@ -17,7 +20,7 @@ func MatchAndDraw(sourceImagePath string, spriteColorDbPath string, spriteSize i
 	frameName := filepath.Base(sourceImagePath)
 
 	db := util.DecodeColorDatabase(spriteColorDbPath)
-	tree := buildSearchTree(db)
+	tree := search.BuildSearchTree(db)
 
 	//load in the image and resize it to number of tiles
 	xTiles := int32(util.SaveResolutionX / spriteSize)
@@ -49,7 +52,7 @@ func MatchAndDraw(sourceImagePath string, spriteColorDbPath string, spriteSize i
 	rl.TakeScreenshot(frameName)
 }
 
-func drawTile(sourceColorData *[]color.RGBA, sourceImage *rl.Image, tree *KDTree, x int32, y int32, spriteSize int) {
+func drawTile(sourceColorData *[]color.RGBA, sourceImage *rl.Image, tree *search.KDTree, x int32, y int32, spriteSize int) {
 
 	oX, oY := valToOffset(x, sourceImage)
 
@@ -58,12 +61,14 @@ func drawTile(sourceColorData *[]color.RGBA, sourceImage *rl.Image, tree *KDTree
 	r := int(color.R)
 	g := int(color.G)
 	b := int(color.B)
+	println(r, g, b, oX, oY)
 	// tile := naiveMatchTileToSprite(r, g, b, db)
-	tile := kdMatchTileToSprite(r, g, b, tree)
-	tileTexture := rl.LoadTexture(util.SpriteSizes + "/" + fmt.Sprint(spriteSize) + "/" + tile)
-	defer rl.UnloadTexture(tileTexture)
+	tile := search.KdMatchTileToSprite(r, g, b, tree)
+	println(tile)
+	//tileTexture := rl.LoadTexture(util.SpriteSizes + "/" + fmt.Sprint(spriteSize) + "/" + tile)
+	//defer rl.UnloadTexture(tileTexture)
 	// and draw it to the screen with raylib
-	rl.DrawTexture(tileTexture, oX, oY, rl.White)
+	//rl.DrawTexture(tileTexture, oX, oY, rl.White)
 
 }
 
@@ -91,6 +96,8 @@ func naiveMatchTileToSprite(r int, g int, b int, spriteColorDb map[string]util.R
 	return closestSprite
 }
 
+//moving to kd.go
+/*
 func buildSearchTree(spriteColorDB map[string]util.Rgb) *KDTree {
 	//grow kd tree for sprites
 	//Initial start hard-coded with joker emoji (feels like kinda average values) emoji_u1f0cf.png
@@ -109,3 +116,4 @@ func kdMatchTileToSprite(r int, g int, b int, searchTree *KDTree) string {
 	return nearestNode.spriteName
 
 }
+*/

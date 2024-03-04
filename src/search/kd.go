@@ -1,4 +1,4 @@
-package mosaic
+package search
 
 import (
 	"math"
@@ -15,6 +15,22 @@ type Node struct {
 
 type KDTree struct {
 	root *Node
+}
+
+func BuildSearchTree(spriteColorDB map[string]util.Rgb) *KDTree {
+	tree := KDTree{}
+	for spriteName, color := range spriteColorDB {
+		tree.Insert(color, spriteName)
+	}
+	return &tree
+}
+
+func KdMatchTileToSprite(r int, g int, b int, searchTree *KDTree) string {
+	color := util.Rgb{R: r, G: g, B: b}
+
+	nearestNode := searchTree.FindNearestNeighbor(color)
+	return nearestNode.spriteName
+
 }
 
 func InsertInTree(current *Node, color util.Rgb, spriteName string, depth int) *Node {

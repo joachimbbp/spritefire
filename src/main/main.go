@@ -39,18 +39,19 @@ func main() {
 			util.SpriteInput,
 			util.SpriteSizes,
 		)
-
-	case "draw":
-		//gonna have to open the canvas map here
-		sRes := 5
-		canvas := mosaic.Canvas(util.InputStill, util.DatabasePath, util.ResizeResolutions[sRes])
-		util.TimeIt(
-			"draw canvas",
-			mosaic.Draw,
-			canvas,
-			"output_frame.png", //dont love this but it'll do for now
-			util.ResizeResolutions[sRes],
-		)
+		/*
+			case "draw":
+				//gonna have to open the canvas map here
+				sRes := 5
+				canvas := mosaic.Canvas(util.InputStill, util.DatabasePath, util.ResizeResolutions[sRes])
+				util.TimeIt(
+					"draw canvas",
+					mosaic.Draw,
+					canvas,
+					"output_frame.png", //dont love this but it'll do for now
+					util.ResizeResolutions[sRes],
+				)
+		*/
 	case "newdraw":
 		util.TimeIt(
 			"draw and match at the same time",
@@ -65,7 +66,7 @@ func main() {
 			"generate video",
 			video.Sequence,
 			util.SequencePath,
-			util.DatabaseFolderPath,
+			util.DatabasePath,
 			1,
 		)
 	}

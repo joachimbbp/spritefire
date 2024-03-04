@@ -8,13 +8,15 @@ import (
 	"math"
 	"sort"
 
+	"github.com/joachimbbp/spritefire/src/search"
 	"github.com/joachimbbp/spritefire/src/util"
-	"gopkg.in/h2non/bimg.v1"
+	"gopkg.in/h2non/bimg.v1" //remove later?
 )
 
-func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) []util.IndexedSprite {
+//var spriteColorDb map[string]util.Rgb
+
+func Canvas(imagePath string, spriteColorDb map[string]util.Rgb, spriteSize int, tree *search.KDTree) []util.IndexedSprite {
 	fmt.Printf("Creating canvas for %s ...\n", imagePath)
-	database := util.DecodeColorDatabase(spriteColorDbPath)
 
 	x_tiles := util.SaveResolutionX / spriteSize
 	y_tiles := util.SaveResolutionY / spriteSize
@@ -43,7 +45,8 @@ func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) []util.I
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			rgbaColor := util.GetRGB(x, y, imgData)
-			canvas[index] = util.IndexedSprite{Index: index, Sprite: spriteMatch(rgbaColor, database)}
+			//canvas[index] = util.IndexedSprite{Index: index, Sprite: naiveSpriteMatch(rgbaColor, spriteColorDb)}
+			canvas[index] = util.IndexedSprite{Index: index, Sprite: search.KdMatchTileToSprite(rgbaColor.R, rgbaColor.G, rgbaColor.B, tree)}
 			fmt.Printf("matched %d to %s", index, canvas[index].Sprite)
 			index++
 		}
@@ -56,7 +59,7 @@ func Canvas(imagePath string, spriteColorDbPath string, spriteSize int) []util.I
 
 }
 
-func spriteMatch(cell util.Rgb, database map[string]util.Rgb) string {
+func naiveSpriteMatch(cell util.Rgb, database map[string]util.Rgb) string {
 
 	closestSprite := "initialized value"
 

@@ -1,11 +1,14 @@
 package video
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/joachimbbp/spritefire/src/mosaic"
+	"github.com/joachimbbp/spritefire/src/search"
 	"github.com/joachimbbp/spritefire/src/util"
 )
 
@@ -15,15 +18,28 @@ func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int
 		log.Fatal(err)
 	}
 
+	sequenceData := make(map[string][]util.IndexedSprite)
+	spriteColorDb := util.DecodeColorDatabase(spriteColorDbPath)
+	tree := search.BuildSearchTree(spriteColorDb)
+
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
 	for _, frame := range frames {
 		if filepath.Ext(frame.Name()) != ".png" {
 			continue
 		}
-
-		framePath := filepath.Join(sequencePath, frame.Name())
-		//canvas := mosaic.Canvas(framePath, util.DatabasePath, util.ResizeResolutions[spriteSizeIndex])
-		//mosaic.Draw(canvas, frame.Name(), util.ResizeResolutions[spriteSizeIndex])
-		mosaic.MatchAndDraw(framePath, util.DatabasePath, util.ResizeResolutions[5])
+		wg.Add(1)
+		go func(frame os.DirEntry) {
+			defer wg.Done()
+			framePath := filepath.Join(sequencePath, frame.Name())
+			sprites := mosaic.Canvas(framePath, spriteColorDb, util.ResizeResolutions[spriteSizeIndex], tree)
+			mu.Lock()
+			sequenceData[frame.Name()] = sprites
+			mu.Unlock()
+		}(frame)
 	}
+	wg.Wait()
+	fmt.Println(sequenceData)
 
 }
