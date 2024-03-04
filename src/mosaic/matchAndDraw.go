@@ -10,6 +10,7 @@ import (
 )
 
 func MatchAndDraw(sourceImagePath string, spriteColorDbPath string, spriteSize int) {
+
 	util.CreateIfNotExist(util.ImageOutput) //even though presently you can't save there with TakeScreenshot
 	frameName := filepath.Base(sourceImagePath)
 
@@ -72,4 +73,15 @@ func matchTileToSprite(r int, g int, b int, spriteColorDb map[string]util.Rgb) s
 
 	}
 	return closestSprite
+}
+
+func buildSearchTree(spriteColorDB map[string]util.Rgb) *KDTree {
+	//grow kd tree for sprites
+	//Initial start hard-coded with joker emoji (feels like kinda average values) emoji_u1f0cf.png
+
+	tree := KDTree{}
+	for spriteName, color := range spriteColorDB {
+		tree.Insert(color, spriteName)
+	}
+	return &tree
 }

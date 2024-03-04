@@ -3,6 +3,7 @@ package util
 import (
 	"image"
 	"image/color"
+	"math"
 )
 
 func GetRGBA(x int, y int, img image.Image) color.RGBA {
@@ -18,4 +19,8 @@ func GetRGB(x int, y int, img image.Image) Rgb {
 	rgb.G = int(rgbaColor.G)
 	rgb.B = int(rgbaColor.B)
 	return rgb
+}
+
+func Distance(a Rgb, b Rgb) float64 {
+	return math.Sqrt(float64((a.R-b.R)*(a.R-b.R) + (a.G-b.G)*(a.G-b.G) + (a.B-b.B)*(a.B-b.B)))
 }
