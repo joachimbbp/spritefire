@@ -2,8 +2,10 @@ package mosaic
 
 import (
 	"fmt"
+	"image/color"
 	"math"
 	"path/filepath"
+	"sync"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/joachimbbp/spritefire/src/util"
@@ -22,41 +24,53 @@ func MatchAndDraw(sourceImagePath string, spriteColorDbPath string, spriteSize i
 	yTiles := int32(util.SaveResolutionY / spriteSize)
 	sourceImage := rl.LoadImage(sourceImagePath)
 	defer rl.UnloadImage(sourceImage)
+
 	rl.ImageResize(sourceImage, xTiles, yTiles)
 	sourceColorData := rl.LoadImageColors(sourceImage)
 
 	rl.InitWindow(util.SaveResolutionX, util.SaveResolutionY, frameName)
 	defer rl.CloseWindow()
 	rl.BeginDrawing()
-	oX := int32(0)
-	oY := int32(0)
 
-	bounds := util.SaveResolutionX - spriteSize
+	var wg sync.WaitGroup
 
 	//for every pixel
 	for y := int32(0); y < sourceImage.Height; y++ {
 		for x := int32(0); x < sourceImage.Width; x++ {
-			//find the closest sprite
-			color := sourceColorData[y*sourceImage.Width+x] //how does this work??? it's from GPT
-			r := int(color.R)
-			g := int(color.G)
-			b := int(color.B)
-			//tile := naiveMatchTileToSprite(r, g, b, db)
-			tile := kdMatchTileToSprite(r, g, b, tree)
-			tileTexture := rl.LoadTexture(util.SpriteSizes + "/" + fmt.Sprint(spriteSize) + "/" + tile)
-			//and draw it to the screen with raylib
-			rl.DrawTexture(tileTexture, oX, oY, rl.White)
-
-			if oX >= int32(bounds) {
-				oX = 0
-				oY += int32(spriteSize)
-			} else {
-				oX += int32(spriteSize)
-			}
-
+			wg.Add(1)
+			go func(x, y int32) {
+				defer wg.Done()
+				drawTile(&sourceColorData, sourceImage, tree,
+					x, y, spriteSize)
+			}(x, y) // Pass x and y as arguments to the function
 		}
 	}
+	wg.Wait()
 	rl.TakeScreenshot(frameName)
+}
+
+func drawTile(sourceColorData *[]color.RGBA, sourceImage *rl.Image, tree *KDTree, x int32, y int32, spriteSize int) {
+
+	oX, oY := valToOffset(x, sourceImage)
+
+	// find the closest sprite
+	color := (*sourceColorData)[y*sourceImage.Width+x]
+	r := int(color.R)
+	g := int(color.G)
+	b := int(color.B)
+	// tile := naiveMatchTileToSprite(r, g, b, db)
+	tile := kdMatchTileToSprite(r, g, b, tree)
+	tileTexture := rl.LoadTexture(util.SpriteSizes + "/" + fmt.Sprint(spriteSize) + "/" + tile)
+	defer rl.UnloadTexture(tileTexture)
+	// and draw it to the screen with raylib
+	rl.DrawTexture(tileTexture, oX, oY, rl.White)
+
+}
+
+func valToOffset(x int32, sourceImage *rl.Image) (int32, int32) {
+	oX := x / sourceImage.Width //oX
+	oY := x % sourceImage.Width //oY
+	return oX, oY
 }
 
 func naiveMatchTileToSprite(r int, g int, b int, spriteColorDb map[string]util.Rgb) string {
