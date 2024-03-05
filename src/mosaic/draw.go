@@ -1,6 +1,7 @@
 package mosaic
 
 import (
+	"fmt"
 	"path/filepath"
 	"strconv"
 
@@ -9,32 +10,45 @@ import (
 )
 
 func Draw(canvas []util.IndexedSprite, frameName string, spriteSizeIndex int) {
+	fmt.Println("Drawing")
+
 	spriteSize := util.ResizeResolutions[spriteSizeIndex]
 	util.CreateIfNotExist(util.ImageOutput)
-
-	oX := int32(0)
-	oY := int32(0)
-
-	rl.InitWindow(util.SaveResolutionX, util.SaveResolutionY, frameName)
+	texX := int32(util.SaveResolutionX)
+	texY := int32(util.SaveResolutionY)
+	rl.InitWindow(texX, texY, frameName)
 	defer rl.CloseWindow()
+	targetTexture := rl.LoadRenderTexture(texX, texY)
+
+	fmt.Println("targetTexture intialized")
+	rl.BeginTextureMode(targetTexture)
+	oX := int32(0)
+	oY := texY - int32(spriteSize)
+
+	fmt.Println("image intitialized, for loop begins execution")
 
 	for _, tile := range canvas {
 
 		tilePath := filepath.Join(util.SpriteSizes, strconv.Itoa(spriteSize), tile.Sprite)
 		tileTexture := rl.LoadTexture(tilePath)
-
-		rl.BeginDrawing()
 		rl.DrawTexture(tileTexture, oX, oY, rl.White)
 
 		bounds := util.SaveResolutionX - spriteSize
 		if oX >= int32(bounds) {
 			oX = 0
-			oY += int32(spriteSize)
+			oY -= int32(spriteSize)
 		} else {
 			oX += int32(spriteSize)
 		}
 	}
+	fmt.Println(targetTexture)
+	fmt.Println("^ targetTexture")
+	rl.EndTextureMode()
 
-	rl.TakeScreenshot(frameName) //no matter what I do this saves to the main dir ugh
-	//might have to change the source code to fix this ngl
+	img := rl.LoadImageFromTexture(targetTexture.Texture)
+
+	fmt.Println(img)
+	rl.ExportImage(*img, util.ImageOutput+"/"+frameName)
+	rl.UnloadImage(img)
+
 }
