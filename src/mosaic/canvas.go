@@ -15,8 +15,8 @@ import (
 
 //var spriteColorDb map[string]util.Rgb
 
-func Canvas(imagePath string, spriteColorDb map[string]util.Rgb, spriteSize int, tree *search.KDTree) []util.IndexedSprite {
-	fmt.Printf("Creating canvas for %s ...\n", imagePath)
+func Canvas(imagePath string, spriteColorDb map[string]util.Rgb, spriteSizeIndex int, tree *search.KDTree) []util.IndexedSprite {
+	spriteSize := util.ResizeResolutions[spriteSizeIndex]
 
 	x_tiles := util.SaveResolutionX / spriteSize
 	y_tiles := util.SaveResolutionY / spriteSize
@@ -40,14 +40,14 @@ func Canvas(imagePath string, spriteColorDb map[string]util.Rgb, spriteSize int,
 	index := 0
 	canvas := make([]util.IndexedSprite, x_tiles*y_tiles)
 
-	fmt.Printf("Matching Sprites\n")
+	fmt.Printf("Creating canvas for %s\nSprite Size: %d\nResolution %d X %d", imagePath, spriteSize, x_tiles, y_tiles)
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			rgbaColor := util.GetRGB(x, y, imgData)
 			//canvas[index] = util.IndexedSprite{Index: index, Sprite: naiveSpriteMatch(rgbaColor, spriteColorDb)}
 			canvas[index] = util.IndexedSprite{Index: index, Sprite: search.KdMatchTileToSprite(rgbaColor.R, rgbaColor.G, rgbaColor.B, tree)}
-			fmt.Printf("matched %d to %s", index, canvas[index].Sprite)
+			//fmt.Printf("matched %d to %s", index, canvas[index].Sprite)
 			index++
 		}
 	}

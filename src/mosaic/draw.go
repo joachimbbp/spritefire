@@ -8,7 +8,8 @@ import (
 	"github.com/joachimbbp/spritefire/src/util"
 )
 
-func Draw(canvas []util.IndexedSprite, frameName string, spriteSize int) {
+func Draw(canvas []util.IndexedSprite, frameName string, spriteSizeIndex int) {
+	spriteSize := util.ResizeResolutions[spriteSizeIndex]
 	util.CreateIfNotExist(util.ImageOutput)
 
 	oX := int32(0)

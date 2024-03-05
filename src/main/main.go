@@ -67,7 +67,7 @@ func main() {
 			video.Sequence,
 			util.SequencePath,
 			util.DatabasePath,
-			1,
+			5,
 		)
 	}
 }

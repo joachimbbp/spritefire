@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"sync"
 
 	"github.com/joachimbbp/spritefire/src/mosaic"
@@ -33,13 +34,25 @@ func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int
 		go func(frame os.DirEntry) {
 			defer wg.Done()
 			framePath := filepath.Join(sequencePath, frame.Name())
-			sprites := mosaic.Canvas(framePath, spriteColorDb, util.ResizeResolutions[spriteSizeIndex], tree)
-			mu.Lock()
+			sprites := mosaic.Canvas(framePath, spriteColorDb, spriteSizeIndex, tree)
+			mu.Lock() //I don't fully understand goroutines yet, but this is the fastest location for mu.Lock()
 			sequenceData[frame.Name()] = sprites
 			mu.Unlock()
 		}(frame)
 	}
 	wg.Wait()
-	fmt.Println(sequenceData)
+
+	//sorts frames so it renders in order (important incase the program is terminated early)
+	keys := make([]string, 0, len(sequenceData)) //from GPT, study
+	for k := range sequenceData {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, frameName := range keys {
+		fmt.Println("drawing for frame", frameName) //frame name
+		mosaic.Draw(sequenceData[frameName], frameName, spriteSizeIndex)
+		//sequenceData[k] //canvas data
+	}
 
 }
