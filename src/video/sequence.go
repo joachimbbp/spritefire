@@ -9,19 +9,17 @@ import (
 	"sync"
 
 	"github.com/joachimbbp/spritefire/src/mosaic"
-	"github.com/joachimbbp/spritefire/src/search"
 	"github.com/joachimbbp/spritefire/src/util"
 )
 
-func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int) {
+func Sequence(sequencePath string, dbPath string, spriteSizeIndex int) {
 	frames, err := os.ReadDir(sequencePath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	sequenceData := make(map[string][]util.IndexedSprite)
-	spriteColorDb := util.DecodeColorDatabase(spriteColorDbPath)
-	tree := search.BuildSearchTree(spriteColorDb)
+	db := util.DecodeColorDatabaseRgb(dbPath) //TODO, get a version of this with passing through alpha bool flag
 
 	var wg sync.WaitGroup
 	var mu sync.Mutex
@@ -34,7 +32,7 @@ func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int
 		go func(frame os.DirEntry) {
 			defer wg.Done()
 			framePath := filepath.Join(sequencePath, frame.Name())
-			sprites := mosaic.Canvas(framePath, spriteColorDb, spriteSizeIndex, tree)
+			sprites := mosaic.Canvas(framePath, db, spriteSizeIndex)
 			mu.Lock() //I don't fully understand goroutines yet, but this is the fastest location for mu.Lock()
 			sequenceData[frame.Name()] = sprites
 			mu.Unlock()

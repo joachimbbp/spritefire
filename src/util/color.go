@@ -24,3 +24,9 @@ func GetRGB(x int, y int, img image.Image) Rgb {
 func Distance(a Rgb, b Rgb) float64 {
 	return math.Sqrt(float64((a.R-b.R)*(a.R-b.R) + (a.G-b.G)*(a.G-b.G) + (a.B-b.B)*(a.B-b.B)))
 }
+
+func RgbaDistance(a Rgba, b Rgba) float64 {
+	return math.Sqrt(float64((a.R-b.R)*(a.R-b.R) + (a.G-b.G)*(a.G-b.G) + (a.B-b.B)*(a.B-b.B) + (a.A-b.A)*(a.A-b.A)))
+}
+
+var SearchDim = 3 //3 for RGB, 4 for RGBA
