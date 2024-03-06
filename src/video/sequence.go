@@ -9,17 +9,19 @@ import (
 	"sync"
 
 	"github.com/joachimbbp/spritefire/src/mosaic"
+	"github.com/joachimbbp/spritefire/src/search"
 	"github.com/joachimbbp/spritefire/src/util"
 )
 
-func Sequence(sequencePath string, dbPath string, spriteSizeIndex int) {
+func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int) {
 	frames, err := os.ReadDir(sequencePath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	sequenceData := make(map[string][]util.IndexedSprite)
-	db := util.DecodeColorDatabaseRgb(dbPath) //TODO, get a version of this with passing through alpha bool flag
+	spriteColorDb := util.DecodeColorDatabase(spriteColorDbPath)
+	tree := search.BuildSearchTree(spriteColorDb)
 
 	var wg sync.WaitGroup
 	var mu sync.Mutex
@@ -32,25 +34,23 @@ func Sequence(sequencePath string, dbPath string, spriteSizeIndex int) {
 		go func(frame os.DirEntry) {
 			defer wg.Done()
 			framePath := filepath.Join(sequencePath, frame.Name())
-			sprites := mosaic.Canvas(framePath, db, spriteSizeIndex)
-			mu.Lock() //I don't fully understand goroutines yet, but this is the fastest location for mu.Lock()
+			sprites := mosaic.Canvas(framePath, spriteColorDb, spriteSizeIndex, tree)
+			mu.Lock()
 			sequenceData[frame.Name()] = sprites
 			mu.Unlock()
 		}(frame)
 	}
 	wg.Wait()
 
-	//sorts frames so it renders in order (important incase the program is terminated early)
-	keys := make([]string, 0, len(sequenceData)) //from GPT, study
+	keys := make([]string, 0, len(sequenceData))
 	for k := range sequenceData {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
 	for _, frameName := range keys {
-		fmt.Println("drawing for frame", frameName) //frame name
+		fmt.Println("drawing for frame", frameName)
 		mosaic.Draw(sequenceData[frameName], frameName, spriteSizeIndex)
-		//sequenceData[k] //canvas data
 	}
 
 }

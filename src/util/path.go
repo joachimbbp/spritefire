@@ -15,10 +15,10 @@ const SpriteInput = AssetBasePath + "/sprites_512"
 const SpriteSizes = OutputBasePath + "/sprite_sizes"
 const ImageOutput = OutputBasePath + "/image_output"
 
-// const CanvasOutput = BasePath + "/canvas"
-
 const InputStill = AssetBasePath + "/test_images/garden_1280x720.png"
 const SequencePath = "/Users/joachimpfefferkorn/Dropbox/spritefire_assets/test_images/mishima"
+
+//user sets sequence and assetBasePath
 
 func CreateIfNotExist(dir string) {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {

@@ -1,19 +1,9 @@
 package util
 
-
-
-
 type Rgb struct {
 	R int
 	G int
 	B int
-}
-
-type Rgba struct {
-	R int
-	G int
-	B int
-	A int
 }
 
 type IndexedSprite struct {
@@ -34,25 +24,6 @@ func (c *Rgb) Get(i int) int {
 	}
 }
 
-func (c *Rgba) Get(i int) int {
-	switch i {
-	case 0:
-		return c.R
-	case 1:
-		return c.G
-	case 2:
-		return c.B
-	case 3:
-		return c.A
-	default:
-		panic("Index out of range")
-	}
-}
-
 func (c *Rgb) Print() {
 	println(c.R, c.G, c.B)
-}
-
-func (c *Rgba) Print() {
-	println(c.R, c.G, c.B, c.A)
 }

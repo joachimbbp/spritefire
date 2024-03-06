@@ -21,8 +21,8 @@ func Database(spriteFolder string, outputFolder string) {
 	fmt.Println("Building database ...")
 	fmt.Printf("Converting sprites in %s and saving to output %s", spriteFolder, outputFolder)
 
-	//spriteColorDatabase := make(map[string]util.Rgba)
 	spriteColorDatabase := make(map[string]util.Rgb)
+
 	sprites, err := os.ReadDir(spriteFolder)
 	if err != nil {
 		log.Fatal(err)
@@ -33,7 +33,7 @@ func Database(spriteFolder string, outputFolder string) {
 				continue
 			}
 			filePath := filepath.Join(spriteFolder, entry.Name())
-			spriteColorDatabase[entry.Name()] = averageColorRgb(filePath)
+			spriteColorDatabase[entry.Name()] = averageColor(filePath)
 		}
 	}
 
@@ -50,7 +50,7 @@ func Database(spriteFolder string, outputFolder string) {
 	}
 }
 
-func averageColorRgb(imagePath string) util.Rgb {
+func averageColor(imagePath string) util.Rgb {
 	file, err := os.Open(imagePath)
 	if err != nil {
 		log.Fatal(err)
@@ -68,11 +68,10 @@ func averageColorRgb(imagePath string) util.Rgb {
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			rgbaColor := util.GetRGBA(x, y, img)
-			rTotal += int(rgbaColor.R)
-			gTotal += int(rgbaColor.G)
-			bTotal += int(rgbaColor.B)
-
+			rgbcolor := util.GetRGB(x, y, img)
+			rTotal += int(rgbcolor.R)
+			gTotal += int(rgbcolor.G)
+			bTotal += int(rgbcolor.B)
 		}
 	}
 
@@ -81,44 +80,7 @@ func averageColorRgb(imagePath string) util.Rgb {
 	average.G = int(gTotal / pixelTotal)
 	average.B = int(bTotal / pixelTotal)
 
-	fmt.Printf("average color for %s is: %d\n", filepath.Base(imagePath), average)
-
-	return average
-}
-
-func averageColorRgba(imagePath string) util.Rgba {
-	file, err := os.Open(imagePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	img, _, err := image.Decode(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	rTotal, gTotal, bTotal, aTotal := 0, 0, 0, 0
-	bounds := img.Bounds()
-	pixelTotal := bounds.Dx() * bounds.Dy()
-
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			rgbaColor := util.GetRGBA(x, y, img)
-			rTotal += int(rgbaColor.R)
-			gTotal += int(rgbaColor.G)
-			bTotal += int(rgbaColor.B)
-			aTotal += int(rgbaColor.A)
-		}
-	}
-
-	var average util.Rgba
-	average.R = int(rTotal / pixelTotal)
-	average.G = int(gTotal / pixelTotal)
-	average.B = int(bTotal / pixelTotal)
-	average.A = int(aTotal / pixelTotal)
-
-	fmt.Printf("average color for %s is: %d\n", filepath.Base(imagePath), average)
+	fmt.Printf("average color is: %d\n", average)
 
 	return average
 }
