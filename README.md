@@ -1,17 +1,10 @@
 # SpriteFire
 
-Download sprites here
+## Usage
+Output is UHD. Input must be a 1280x720 png sequence.
+User must set their own paths in util/path
+Database and resized sprites must be generated before creating mosaic
 
-## Instructions
-
-1. Install OpenCV, by following the instructions [here](https://docs.opencv.org/4.x/index.html).
-
-2. Build OpenCV.
-
-3. Build the library:
-
-```
-mkdir build && cd build
-cmake -DOpenCV_DIR=/path/to/opencv/build ..
-cmake --build . --config Release
-```
+## Sprites
+Project has been tested with the google noto emoji pack. These can be found in the asset folder.
+To create your own emoji sizes use the resize function
