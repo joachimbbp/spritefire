@@ -9,3 +9,6 @@ Mishima took generate video took 855834208334% (eight minutes)
     Small glitch in bottom right corner persists: no sprites are rendered there
     Raylib does not appear to be outputing alpha layer
     KD tree matches slightly different
+
+
+Reverting this to a previous version as previous commit was bad (got very lost trying to get alpha working)
