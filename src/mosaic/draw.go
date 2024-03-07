@@ -28,15 +28,16 @@ func Draw(canvas []util.IndexedSprite, frameName string, spriteSizeIndex int) {
 	fmt.Println("image intitialized, for loop begins execution")
 
 	for _, tile := range canvas {
+		if tile.Sprite != "blankfile" {
+			tilePath := filepath.Join(util.SpriteSizes, strconv.Itoa(spriteSize), tile.Sprite)
+			tileTexture := rl.LoadTexture(tilePath)
 
-		tilePath := filepath.Join(util.SpriteSizes, strconv.Itoa(spriteSize), tile.Sprite)
-		tileTexture := rl.LoadTexture(tilePath)
+			sourceRec := rl.NewRectangle(0, 0, float32(tileTexture.Width), -float32(tileTexture.Height))
+			destRec := rl.NewRectangle(float32(oX), float32(oY), float32(tileTexture.Width), float32(tileTexture.Height))
+			origin := rl.NewVector2(0, 0)
 
-		sourceRec := rl.NewRectangle(0, 0, float32(tileTexture.Width), -float32(tileTexture.Height))
-		destRec := rl.NewRectangle(float32(oX), float32(oY), float32(tileTexture.Width), float32(tileTexture.Height))
-		origin := rl.NewVector2(0, 0)
-
-		rl.DrawTexturePro(tileTexture, sourceRec, destRec, origin, 0, rl.White)
+			rl.DrawTexturePro(tileTexture, sourceRec, destRec, origin, 0, rl.White)
+		}
 
 		bounds := util.SaveResolutionX - spriteSize
 		if oX >= int32(bounds) {
@@ -55,5 +56,5 @@ func Draw(canvas []util.IndexedSprite, frameName string, spriteSizeIndex int) {
 	fmt.Println(img)
 	rl.ExportImage(*img, util.ImageOutput+"/"+frameName)
 	rl.UnloadImage(img)
-
+	rl.UnloadRenderTexture(targetTexture)
 }
