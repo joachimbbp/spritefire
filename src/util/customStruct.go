@@ -6,6 +6,13 @@ type Rgb struct {
 	B int
 }
 
+type Rgba struct {
+	R int
+	G int
+	B int
+	A int
+}
+
 type IndexedSprite struct {
 	Index  int
 	Sprite string

@@ -28,15 +28,9 @@ func Draw(canvas []util.IndexedSprite, frameName string, spriteSizeIndex int) {
 	fmt.Println("image intitialized, for loop begins execution")
 
 	for _, tile := range canvas {
-
-		tilePath := filepath.Join(util.SpriteSizes, strconv.Itoa(spriteSize), tile.Sprite)
-		tileTexture := rl.LoadTexture(tilePath)
-
-		sourceRec := rl.NewRectangle(0, 0, float32(tileTexture.Width), -float32(tileTexture.Height))
-		destRec := rl.NewRectangle(float32(oX), float32(oY), float32(tileTexture.Width), float32(tileTexture.Height))
-		origin := rl.NewVector2(0, 0)
-
-		rl.DrawTexturePro(tileTexture, sourceRec, destRec, origin, 0, rl.White)
+		if tile.Sprite != "blankfile" {
+			drawSprite(tile, spriteSize, oX, oY)
+		}
 
 		bounds := util.SaveResolutionX - spriteSize
 		if oX >= int32(bounds) {
@@ -55,5 +49,16 @@ func Draw(canvas []util.IndexedSprite, frameName string, spriteSizeIndex int) {
 	fmt.Println(img)
 	rl.ExportImage(*img, util.ImageOutput+"/"+frameName)
 	rl.UnloadImage(img)
+	rl.UnloadRenderTexture(targetTexture)
+}
 
+func drawSprite(tile util.IndexedSprite, spriteSize int, oX int32, oY int32) {
+	tilePath := filepath.Join(util.SpriteSizes, strconv.Itoa(spriteSize), tile.Sprite)
+	tileTexture := rl.LoadTexture(tilePath)
+
+	sourceRec := rl.NewRectangle(0, 0, float32(tileTexture.Width), -float32(tileTexture.Height))
+	destRec := rl.NewRectangle(float32(oX), float32(oY), float32(tileTexture.Width), float32(tileTexture.Height))
+	origin := rl.NewVector2(0, 0)
+
+	rl.DrawTexturePro(tileTexture, sourceRec, destRec, origin, 0, rl.White)
 }
