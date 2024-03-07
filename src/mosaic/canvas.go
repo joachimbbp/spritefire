@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"image"
 	"log"
-	"math"
 	"sort"
 
 	"github.com/joachimbbp/spritefire/src/search"
@@ -42,37 +41,26 @@ func Canvas(imagePath string, spriteColorDb map[string]util.Rgb, spriteSizeIndex
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			rgbaColor := util.GetRGB(x, y, imgData)
-			canvas[index] = util.IndexedSprite{Index: index, Sprite: search.KdMatchTileToSprite(rgbaColor.R, rgbaColor.G, rgbaColor.B, tree)}
+			rgbaColor := util.GetRGBA(x, y, imgData)
+			if rgbaColor.A != 0 { // Skip fully transparent pixels
+				canvas[index] = util.IndexedSprite{
+					Index:  index,
+					Sprite: search.KdMatchTileToSprite(rgbaColor.R, rgbaColor.G, rgbaColor.B, tree),
+				}
+			} else {
+				canvas[index] = util.IndexedSprite{
+					Index:  index,
+					Sprite: "blanktile",
+				}
+			}
 			index++
 		}
 	}
+
 	sort.Slice(canvas, func(i, j int) bool {
 		return canvas[i].Index < canvas[j].Index
 	})
 
 	return canvas
 
-}
-
-func naiveSpriteMatch(cell util.Rgb, database map[string]util.Rgb) string {
-
-	closestSprite := "initialized value"
-
-	shortestColorLength := math.Sqrt(3 * math.Pow(255, 2))
-
-	for entry, sprite := range database {
-		redDistTemp := math.Pow(float64(sprite.R-cell.R), 2)
-		greenDistTemp := math.Pow(float64(sprite.G-cell.G), 2)
-		blueDistTemp := math.Pow(float64(sprite.B-cell.B), 2)
-
-		distance := math.Sqrt(redDistTemp + greenDistTemp + blueDistTemp)
-
-		if distance < shortestColorLength {
-			shortestColorLength = distance
-			closestSprite = entry
-		}
-	}
-
-	return closestSprite
 }

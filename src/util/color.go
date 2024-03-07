@@ -6,9 +6,14 @@ import (
 	"math"
 )
 
-func GetRGBA(x int, y int, img image.Image) color.RGBA {
+func GetRGBA(x int, y int, img image.Image) Rgba {
 	rgbaColor := color.RGBAModel.Convert(img.At(x, y)).(color.RGBA)
-	return rgbaColor
+	var rgba Rgba
+	rgba.R = int(rgbaColor.R)
+	rgba.G = int(rgbaColor.G)
+	rgba.B = int(rgbaColor.B)
+	rgba.A = int(rgbaColor.A)
+	return rgba
 }
 
 // Custom Rgb type can be found in customStruct.go
