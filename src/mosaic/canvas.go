@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"log"
+	"path/filepath"
 	"sort"
 
 	"github.com/joachimbbp/spritefire/src/search"
@@ -14,6 +15,10 @@ import (
 
 func Canvas(imagePath string, spriteColorDb map[string]util.Rgb, spriteSizeIndex int, tree *search.KDTree) []util.IndexedSprite {
 	spriteSize := util.ResizeResolutions[spriteSizeIndex]
+
+	fmt.Println("Creating Canvas")
+	fmt.Println("frame:\n", filepath.Base(imagePath))
+	fmt.Println("sprite size:\n", spriteSize)
 
 	x_tiles := util.SaveResolutionX / spriteSize
 	y_tiles := util.SaveResolutionY / spriteSize
@@ -36,8 +41,6 @@ func Canvas(imagePath string, spriteColorDb map[string]util.Rgb, spriteSizeIndex
 	bounds := imgData.Bounds()
 	index := 0
 	canvas := make([]util.IndexedSprite, x_tiles*y_tiles)
-
-	fmt.Printf("Creating canvas for %s\nSprite Size: %d\nResolution %d X %d", imagePath, spriteSize, x_tiles, y_tiles)
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {

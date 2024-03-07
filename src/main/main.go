@@ -12,7 +12,8 @@ import (
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("usage: main.go <arg>")
-		fmt.Println("args: database, printdb, resize")
+		fmt.Println("args: database, printdb, resize, video")
+		fmt.Println("See readme for more information about how to use this program")
 		return
 	}
 
@@ -28,7 +29,6 @@ func main() {
 		)
 
 	case "printdb":
-		fmt.Printf("printing db\n")
 		util.PrintColorDatabase("/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/database/sprite_color_db")
 
 	case "resize":
@@ -45,7 +45,8 @@ func main() {
 			video.Sequence,
 			util.SequencePath,
 			util.DatabasePath,
-			5,
+			5, //set this to choose the desired resolution. See readme for more
 		)
+
 	}
 }

@@ -24,8 +24,12 @@ func TimeIt(name string, fn interface{}, args ...interface{}) (time.Duration, []
 	results := fnVal.Call(in)
 	elapsed := time.Since(start)
 
-	fmt.Printf("%s took %d", name, elapsed)
-
+	fmt.Printf("\n%s took %d ms", name, elapsed)
+	// Print the elapsed time in hours, minutes, and seconds
+	hours := int(elapsed.Hours())
+	minutes := int(elapsed.Minutes()) % 60
+	seconds := int(elapsed.Seconds()) % 60
+	fmt.Printf("\nAKA:\n%s took %d hours %d minutes %d seconds\n", name, hours, minutes, seconds)
 	// Return the execution time and the results
 	return elapsed, results, nil
 }

@@ -1,3 +1,4 @@
+# BLOG:
 March 01 2024:
 Mishima took 3051757667834%  (half an hour)
     879 frames, sprite size index 5 (30x30)
@@ -9,3 +10,11 @@ Mishima took generate video took 855834208334% (eight minutes)
     Small glitch in bottom right corner persists: no sprites are rendered there
     Raylib does not appear to be outputing alpha layer
     KD tree matches slightly different
+
+March 07 2024:
+Refactoring for useability
+    database creation took 26 seconds
+        This still needs to be multithreaded, it's quite slow
+    resizing took 0 hours 2 minutes 22 seconds
+    generate video took 0 hours 1 minutes 33 seconds
+        This is for the new "scuba" test video at resolution 5
