@@ -22,6 +22,8 @@ jobs:
             ${{ runner.os }}-go-
       - name: Download dependencies
         run: go mod download
+      - name: Install vips
+        run: brew install vips
       - name: Change Directory
         run: |
           cd src/main
