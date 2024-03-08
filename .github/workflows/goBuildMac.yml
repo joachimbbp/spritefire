@@ -15,5 +15,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Download dependencies
         run: go mod download
+      - name: Change Directory
+        run: cd src
       - name: Build project
-        run: go build . #should I cache my dependencies?
+        run: go build ..
