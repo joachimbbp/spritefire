@@ -18,4 +18,4 @@ jobs:
       - name: Change Directory
         run: cd src
       - name: Build project
-        run: go build ..
+        run: go build .
