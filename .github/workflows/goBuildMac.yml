@@ -17,5 +17,5 @@ jobs:
         run: go mod download
       - name: Change Directory
         run: |
-          cd src
+          cd src/main
           go build
