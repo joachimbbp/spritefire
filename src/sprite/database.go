@@ -18,9 +18,6 @@ import (
 func Database(spriteFolder string, outputFolder string) {
 	util.CreateIfNotExist(outputFolder)
 
-	fmt.Println("Building database ...")
-	fmt.Printf("Converting sprites in %s and saving to output %s", spriteFolder, outputFolder)
-
 	spriteColorDatabase := make(map[string]util.Rgb)
 
 	sprites, err := os.ReadDir(spriteFolder)
@@ -34,10 +31,15 @@ func Database(spriteFolder string, outputFolder string) {
 			}
 			filePath := filepath.Join(spriteFolder, entry.Name())
 			spriteColorDatabase[entry.Name()] = averageColor(filePath)
+
+			fmt.Println("\nDatabase Creation adding:")
+			fmt.Println("Sprite:\n", entry.Name())
+			fmt.Println("average color:\n", spriteColorDatabase[entry.Name()])
+
 		}
 	}
 
-	file, err := os.Create(filepath.Join(util.DatabaseFolderPath, "sprite_color_db"))
+	file, err := os.Create(util.DatabasePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -79,8 +81,6 @@ func averageColor(imagePath string) util.Rgb {
 	average.R = int(rTotal / pixelTotal)
 	average.G = int(gTotal / pixelTotal)
 	average.B = int(bTotal / pixelTotal)
-
-	fmt.Printf("average color is: %d\n", average)
 
 	return average
 }

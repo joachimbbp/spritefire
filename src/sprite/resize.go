@@ -14,25 +14,25 @@ import (
 
 func Resize(spriteFolder string, resizedFolder string) {
 	util.CreateIfNotExist(resizedFolder)
-	fmt.Println("Resizing sprites ...")
 
-	for i, resolution := range util.ResizeResolutions {
+	for _, resolution := range util.ResizeResolutions {
 		sprites, readDirErr := os.ReadDir(spriteFolder)
 		if readDirErr != nil {
 			log.Fatal(readDirErr)
 		}
 
-		fmt.Printf("resizing for resolution %d: %d\n", i, resolution)
 		resSubfolder := filepath.Join(resizedFolder, fmt.Sprint(resolution))
 
-		fmt.Printf("folder created: %s\n", resSubfolder)
 		mkdirErr := os.Mkdir(resSubfolder, 0755)
 		if mkdirErr != nil {
 			log.Fatal(mkdirErr)
 		}
 
 		for _, sprite := range sprites {
-			fmt.Printf("resizing %s to resolution %d\n", sprite, resolution)
+
+			fmt.Println("\nCreating Resized Sprite")
+			fmt.Println("Resolution:\n", resolution)
+			fmt.Println("Sprite:\n", sprite)
 
 			spritePath := filepath.Join(spriteFolder, sprite.Name())
 
@@ -45,9 +45,6 @@ func Resize(spriteFolder string, resizedFolder string) {
 			if err != nil {
 				log.Fatal(err)
 			}
-
-			fmt.Printf("Opened %s\n", sprite)
-			fmt.Printf("Image created saved at size %d\n", resolution)
 
 			outPath := resizedFolder + "/" + fmt.Sprint(resolution) + "/" + sprite.Name()
 			err = bimg.Write(outPath, thumbnailImage)

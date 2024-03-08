@@ -1,7 +1,6 @@
 package video
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -34,9 +33,10 @@ func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int
 		go func(frame os.DirEntry) {
 			defer wg.Done()
 			framePath := filepath.Join(sequencePath, frame.Name())
-			sprites := mosaic.Canvas(framePath, spriteColorDb, spriteSizeIndex, tree)
+			spriteCanvas := mosaic.Canvas(framePath, spriteColorDb, spriteSizeIndex, tree)
 			mu.Lock()
-			sequenceData[frame.Name()] = sprites
+			sequenceData[frame.Name()] = spriteCanvas
+
 			mu.Unlock()
 		}(frame)
 	}
@@ -49,8 +49,8 @@ func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int
 	sort.Strings(keys)
 
 	for _, frameName := range keys {
-		fmt.Println("drawing for frame", frameName)
 		mosaic.Draw(sequenceData[frameName], frameName, spriteSizeIndex)
+
 	}
 
 }

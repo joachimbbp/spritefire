@@ -10,9 +10,12 @@ import (
 )
 
 func Draw(canvas []util.IndexedSprite, frameName string, spriteSizeIndex int) {
-	fmt.Println("Drawing")
-
 	spriteSize := util.ResizeResolutions[spriteSizeIndex]
+
+	fmt.Println("\nDrawing and saving image to disk")
+	fmt.Println("frame:\n", frameName)
+	fmt.Println("sprite size:\n", spriteSize)
+
 	util.CreateIfNotExist(util.ImageOutput)
 	texX := int32(util.SaveResolutionX)
 	texY := int32(util.SaveResolutionY)
@@ -20,12 +23,9 @@ func Draw(canvas []util.IndexedSprite, frameName string, spriteSizeIndex int) {
 	defer rl.CloseWindow()
 	targetTexture := rl.LoadRenderTexture(texX, texY)
 
-	fmt.Println("targetTexture intialized")
 	rl.BeginTextureMode(targetTexture)
 	oX := int32(0)
 	oY := texY - int32(spriteSize)
-
-	fmt.Println("image intitialized, for loop begins execution")
 
 	for _, tile := range canvas {
 		if tile.Sprite != "blankfile" {
@@ -40,13 +40,10 @@ func Draw(canvas []util.IndexedSprite, frameName string, spriteSizeIndex int) {
 			oX += int32(spriteSize)
 		}
 	}
-	fmt.Println(targetTexture)
-	fmt.Println("^ targetTexture")
 	rl.EndTextureMode()
 
 	img := rl.LoadImageFromTexture(targetTexture.Texture)
 
-	fmt.Println(img)
 	rl.ExportImage(*img, util.ImageOutput+"/"+frameName)
 	rl.UnloadImage(img)
 	rl.UnloadRenderTexture(targetTexture)
