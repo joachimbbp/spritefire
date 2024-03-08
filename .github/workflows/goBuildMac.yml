@@ -16,6 +16,6 @@ jobs:
       - name: Download dependencies
         run: go mod download
       - name: Change Directory
-        run: cd src
-      - name: Build project
-        run: go build .
+        run: |
+          cd src
+          go build
