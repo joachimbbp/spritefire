@@ -1,0 +1,19 @@
+name: Go
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+    steps:
+      - name: Setup Go 1.21.x
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21.x'
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Download dependencies
+        run: go mod download
+      - name: Build project
+        run: go build . #should I cache my dependencies?
