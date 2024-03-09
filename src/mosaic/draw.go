@@ -9,7 +9,7 @@ import (
 	"github.com/joachimbbp/spritefire/src/util"
 )
 
-func Draw(canvas []util.IndexedSprite, frameName string, spriteSizeIndex int) {
+func Draw(canvas []util.IndexedSprite, prefix string, frameName string, spriteSizeIndex int) {
 	spriteSize := util.ResizeResolutions[spriteSizeIndex]
 
 	fmt.Println("\nDrawing and saving image to disk")
@@ -44,7 +44,7 @@ func Draw(canvas []util.IndexedSprite, frameName string, spriteSizeIndex int) {
 
 	img := rl.LoadImageFromTexture(targetTexture.Texture)
 
-	rl.ExportImage(*img, util.ImageOutput+"/"+frameName)
+	rl.ExportImage(*img, util.ImageOutput+"/"+prefix+frameName)
 	rl.UnloadImage(img)
 	rl.UnloadRenderTexture(targetTexture)
 }

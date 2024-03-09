@@ -49,13 +49,13 @@ func main() {
 			false,
 		)
 	case "batchRes":
-		batchResolutions := []int{120, 80, 60, 48, 40, 30, 24, 16, 15, 12}
+		batchResIndices := []int{0, 4, 9}
 		util.TimeIt(
 			"generating video for multiple resolutions",
 			video.BatchSequence,
 			util.SequencePath,
 			util.DatabasePath,
-			batchResolutions,
+			batchResIndices,
 		)
 
 	}

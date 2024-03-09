@@ -15,9 +15,9 @@ import (
 
 func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int, batch bool) {
 	prefix := ""
+	spriteSize := util.SpriteSizes[spriteSizeIndex]
 	if batch {
-		prefix = strconv.Itoa(int(util.SpriteSizes[spriteSizeIndex])) + "_"
-		//prefix = "prefix"
+		prefix = strconv.Itoa(int(spriteSize)) + "_"
 	}
 
 	frames, err := os.ReadDir(sequencePath)
@@ -49,14 +49,14 @@ func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int
 	}
 	wg.Wait()
 
-	frameNames := make([]string, 0, len(sequenceData))
+	keys := make([]string, 0, len(sequenceData))
 	for k := range sequenceData {
-		frameNames = append(frameNames, k)
+		keys = append(keys, k)
 	}
-	sort.Strings(frameNames)
+	sort.Strings(keys)
 
-	for _, frameName := range frameNames {
-		mosaic.Draw(sequenceData[frameName], prefix+frameName, spriteSizeIndex)
+	for _, frameName := range keys {
+		mosaic.Draw(sequenceData[frameName], prefix, frameName, spriteSizeIndex)
 
 	}
 
