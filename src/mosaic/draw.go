@@ -28,7 +28,7 @@ func Draw(canvas []util.IndexedSprite, frameName string, spriteSizeIndex int) {
 	oY := texY - int32(spriteSize)
 
 	for _, tile := range canvas {
-		if tile.Sprite != "blankfile" {
+		if tile.Sprite != "blanktile" {
 			drawSprite(tile, spriteSize, oX, oY)
 		}
 

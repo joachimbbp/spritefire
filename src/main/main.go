@@ -41,11 +41,21 @@ func main() {
 
 	case "video":
 		util.TimeIt(
-			"generate video",
+			"generating video",
 			video.Sequence,
 			util.SequencePath,
 			util.DatabasePath,
 			5, //set this to choose the desired resolution. See readme for more
+			false,
+		)
+	case "batchRes":
+		batchResolutions := []int{120, 80, 60, 48, 40, 30, 24, 16, 15, 12}
+		util.TimeIt(
+			"generating video for multiple resolutions",
+			video.BatchSequence,
+			util.SequencePath,
+			util.DatabasePath,
+			batchResolutions,
 		)
 
 	}

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"sync"
 
 	"github.com/joachimbbp/spritefire/src/mosaic"
@@ -12,7 +13,13 @@ import (
 	"github.com/joachimbbp/spritefire/src/util"
 )
 
-func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int) {
+func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int, batch bool) {
+	prefix := ""
+	if batch {
+		prefix = strconv.Itoa(int(util.SpriteSizes[spriteSizeIndex])) + "_"
+		//prefix = "prefix"
+	}
+
 	frames, err := os.ReadDir(sequencePath)
 	if err != nil {
 		log.Fatal(err)
@@ -42,14 +49,14 @@ func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int
 	}
 	wg.Wait()
 
-	keys := make([]string, 0, len(sequenceData))
+	frameNames := make([]string, 0, len(sequenceData))
 	for k := range sequenceData {
-		keys = append(keys, k)
+		frameNames = append(frameNames, k)
 	}
-	sort.Strings(keys)
+	sort.Strings(frameNames)
 
-	for _, frameName := range keys {
-		mosaic.Draw(sequenceData[frameName], frameName, spriteSizeIndex)
+	for _, frameName := range frameNames {
+		mosaic.Draw(sequenceData[frameName], prefix+frameName, spriteSizeIndex)
 
 	}
 

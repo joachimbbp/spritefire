@@ -18,3 +18,8 @@ Refactoring for useability
     resizing took 0 hours 2 minutes 22 seconds
     generate video took 0 hours 1 minutes 33 seconds
         This is for the new "scuba" test video at resolution 5
+
+March 08 2024:
+Dogfodding the app with my own video.
+It feels like compositing the sprites on with alpha only sometimes creates compelling results.
+I'm getting the handle on what kind of images look and feel best

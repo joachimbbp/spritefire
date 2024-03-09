@@ -6,6 +6,7 @@ import (
 )
 
 const AssetBasePath = "../../assets"
+
 const TestFootageBasePath = "../../assets/test_footage"
 const OutputBasePath = "../../output"
 
