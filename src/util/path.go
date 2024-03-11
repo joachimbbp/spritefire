@@ -15,7 +15,9 @@ const DatabasePath = DatabaseFolderPath + "/sprite_color_db"
 
 const SpriteInput = AssetBasePath + "/sprites_512"
 const SpriteSizes = OutputBasePath + "/sprite_mgmt"
-const ImageOutput = OutputBasePath + "/image_output"
+const ImageOutputConst = OutputBasePath + "/image_output"
+
+var ImageOutput = OutputBasePath + "/image_output"
 
 const SequencePath = TestFootageBasePath + "/scuba" //change this to your own 1280x720 .png sequence
 

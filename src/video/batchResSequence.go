@@ -2,21 +2,25 @@ package video
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/joachimbbp/spritefire/src/util"
 )
 
 func BatchSequence(sequencePath string, spriteColorDbPath string, spriteResIndices []int) {
-	fmt.Printf("not implemented yet, batchSequence")
+
 	fmt.Println(sequencePath, spriteColorDbPath, spriteResIndices)
 
 	for _, resIndex := range spriteResIndices {
-		fmt.Println("resolution: ")
-		fmt.Println((util.SpriteSizes[resIndex]))
+		fmt.Println(resIndex, "\n")
 
-		fmt.Println("index: ")
-		fmt.Println(resIndex)
+		res := strconv.Itoa(int(util.ResizeResolutions[resIndex]))
+		util.ImageOutput = util.ImageOutputConst + "/" + res
+		util.CreateIfNotExist(util.ImageOutput)
 
-		//Sequence(sequencePath, spriteColorDbPath, resIndex, true)
+		fmt.Println("\noutput: ", util.ImageOutput)
+
+		Sequence(sequencePath, spriteColorDbPath, resIndex)
 	}
+	util.ImageOutput = util.ImageOutputConst
 }

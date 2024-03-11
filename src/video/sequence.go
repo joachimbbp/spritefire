@@ -13,12 +13,8 @@ import (
 	"github.com/joachimbbp/spritefire/src/util"
 )
 
-func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int, batch bool) {
-	prefix := ""
-	spriteSize := util.SpriteSizes[spriteSizeIndex]
-	if batch {
-		prefix = strconv.Itoa(int(spriteSize)) + "_"
-	}
+func Sequence(sequencePath string, spriteColorDbPath string, spriteSizeIndex int) {
+	prefix := strconv.Itoa((util.ResizeResolutions[spriteSizeIndex])) + "_"
 
 	frames, err := os.ReadDir(sequencePath)
 	if err != nil {
