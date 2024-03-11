@@ -31,4 +31,4 @@ jobs:
       - name: Custom Continuous Integration Tests
         run: |
           cd src/main
-          go CI_testing
+          go run main.go CI_testing
