@@ -1,5 +1,5 @@
 # KNOWN BUGS
-- Memory leak when drawing image. Seems to not free up memory after each frame.
+- Program crashes towards the end of large batch jobs
 
 
 # BLOG:
@@ -33,3 +33,4 @@ March 11 2024:
     Was pretty tired on friday so made some less than stellar decisions with the batch processing. Refactored today and it's much better.
     However, there seems to be a memory leak (or something) that causes the program to crash after processing many sprites, especially at a higher "reslolution" (meaning, confusingly, a lower sprite resolution, thus more sprites per image)
     Adding After Effects switcher.
+    Upon further investigation, it does not appear to be a memory leak. It just crashes at some point.
