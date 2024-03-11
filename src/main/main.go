@@ -21,6 +21,7 @@ func main() {
 
 	switch mode {
 	case "database":
+		fmt.Printf("Creating database")
 		util.TimeIt(
 			"database creation",
 			sprite.Database,
@@ -32,6 +33,7 @@ func main() {
 		util.PrintColorDatabase("/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/database/sprite_color_db")
 
 	case "resize":
+		fmt.Printf("Resizing Sprites")
 		util.TimeIt(
 			"resizing",
 			sprite.Resize,
@@ -41,7 +43,7 @@ func main() {
 
 	case "video":
 		util.TimeIt(
-			"generating video",
+			"Generating Video",
 			video.Sequence,
 			util.SequencePath,
 			util.DatabasePath,
@@ -50,7 +52,7 @@ func main() {
 	case "batchRes":
 		batchResIndices := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 		util.TimeIt(
-			"generating video for multiple resolutions",
+			"Generating video for multiple resolutions",
 			video.BatchSequence,
 			util.SequencePath,
 			util.DatabasePath,

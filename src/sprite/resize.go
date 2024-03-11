@@ -29,10 +29,11 @@ func Resize(spriteFolder string, resizedFolder string) {
 		}
 
 		for _, sprite := range sprites {
-
-			fmt.Println("\nCreating Resized Sprite")
-			fmt.Println("Resolution:\n", resolution)
-			fmt.Println("Sprite:\n", sprite)
+			/*
+				fmt.Println("\nCreating Resized Sprite")
+				fmt.Println("Resolution:\n", resolution)
+				fmt.Println("Sprite:\n", sprite)
+			*/ //Commenting out as it's unweildy in debugging CI
 
 			spritePath := filepath.Join(spriteFolder, sprite.Name())
 
