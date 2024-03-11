@@ -12,13 +12,10 @@ func BatchSequence(sequencePath string, spriteColorDbPath string, spriteResIndic
 	fmt.Println(sequencePath, spriteColorDbPath, spriteResIndices)
 
 	for _, resIndex := range spriteResIndices {
-		fmt.Println(resIndex, "\n")
 
 		res := strconv.Itoa(int(util.ResizeResolutions[resIndex]))
 		util.ImageOutput = util.ImageOutputConst + "/" + res
 		util.CreateIfNotExist(util.ImageOutput)
-
-		fmt.Println("\noutput: ", util.ImageOutput)
 
 		Sequence(sequencePath, spriteColorDbPath, resIndex)
 	}
