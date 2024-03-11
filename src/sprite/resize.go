@@ -12,10 +12,12 @@ import (
 
 //TODO run in parallel with goroutines or (better yet) raylib
 
-func Resize(spriteFolder string, resizedFolder string) {
+func Resize(spriteFolder string, resizedFolder string, spriteResIndices []int) {
 	util.CreateIfNotExist(resizedFolder)
 
-	for _, resolution := range util.ResizeResolutions {
+	for _, index := range spriteResIndices {
+		resolution := int(util.SpriteSizes[index])
+
 		sprites, readDirErr := os.ReadDir(spriteFolder)
 		if readDirErr != nil {
 			log.Fatal(readDirErr)
