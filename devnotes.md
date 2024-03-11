@@ -1,6 +1,9 @@
 # KNOWN BUGS
 - Program crashes towards the end of large batch jobs
+    - Once this is fixed, have the CI run a batch (not just video)
 
+# PULL REQUESTS AND CONTRIBUTERS
+- feel free to contact jbbpfefferkorn@gmail.com for any questions
 
 # BLOG:
 March 01 2024:

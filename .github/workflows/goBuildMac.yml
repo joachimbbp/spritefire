@@ -27,5 +27,7 @@ jobs:
       - name: Change Directory
         run: |
           cd src/main
+          go run main.go database
+          go run main.go resize
           go run main.go video
           go build

@@ -45,7 +45,7 @@ func main() {
 			video.Sequence,
 			util.SequencePath,
 			util.DatabasePath,
-			5, //set this to choose the desired resolution. See readme for more
+			5, //set this to choose the desired resolution. Hard coded at 5 for CI for now
 		)
 	case "batchRes":
 		batchResIndices := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
