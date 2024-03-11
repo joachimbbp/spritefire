@@ -24,9 +24,11 @@ jobs:
         run: go mod download
       - name: Install vips
         run: brew install vips
-      - name: Change Directory
-        run: cd src/main
       - name: Build Test
-        run: go build
+        run: |
+          cd src/main
+          go build
       - name: Custom Continuous Integration Tests
-        run: go CI_testing
+        run: |
+          cd src/main
+          go CI_testing
