@@ -21,6 +21,8 @@ var ImageOutput = OutputBasePath + "/image_output"
 
 const SequencePath = TestFootageBasePath + "/scuba" //change this to your own 1280x720 .png sequence
 
+//const SequencePath = "/Users/joachimpfefferkorn/Dropbox/spritefire_assets/test_images/dogfood_march_11"
+
 func CreateIfNotExist(dir string) {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		err := os.MkdirAll(dir, 0755)

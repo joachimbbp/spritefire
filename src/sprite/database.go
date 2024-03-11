@@ -2,7 +2,6 @@ package sprite
 
 import (
 	"encoding/gob"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -31,10 +30,11 @@ func Database(spriteFolder string, outputFolder string) {
 			}
 			filePath := filepath.Join(spriteFolder, entry.Name())
 			spriteColorDatabase[entry.Name()] = averageColor(filePath)
-
-			fmt.Println("\nDatabase Creation adding:")
-			fmt.Println("Sprite:\n", entry.Name())
-			fmt.Println("average color:\n", spriteColorDatabase[entry.Name()])
+			/*
+				fmt.Println("\nDatabase Creation adding:")
+				fmt.Println("Sprite:\n", entry.Name())
+				fmt.Println("average color:\n", spriteColorDatabase[entry.Name()])
+			*/ //commented out as it's unwieldy in debugging CI
 
 		}
 	}
