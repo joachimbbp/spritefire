@@ -25,9 +25,8 @@ jobs:
       - name: Install vips
         run: brew install vips
       - name: Change Directory
-        run: |
-          cd src/main
-          go run main.go database
-          go run main.go resize
-          go run main.go video
-          go build
+        run: cd src/main
+      - name: Build Test
+        run: go build
+      - name: Custom Continuous Integration Tests
+        run: go CI_testing

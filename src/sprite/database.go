@@ -2,6 +2,7 @@ package sprite
 
 import (
 	"encoding/gob"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,7 +15,7 @@ import (
 
 //TODO: multithread in goroutines
 
-func Database(spriteFolder string, outputFolder string) {
+func Database(spriteFolder string, outputFolder string, ci bool) {
 	util.CreateIfNotExist(outputFolder)
 
 	spriteColorDatabase := make(map[string]util.Rgb)
@@ -23,6 +24,7 @@ func Database(spriteFolder string, outputFolder string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	for _, entry := range sprites {
 		if !entry.IsDir() {
 			if filepath.Ext(entry.Name()) != ".png" {
@@ -30,11 +32,11 @@ func Database(spriteFolder string, outputFolder string) {
 			}
 			filePath := filepath.Join(spriteFolder, entry.Name())
 			spriteColorDatabase[entry.Name()] = averageColor(filePath)
-			/*
+			if !ci {
 				fmt.Println("\nDatabase Creation adding:")
 				fmt.Println("Sprite:\n", entry.Name())
 				fmt.Println("average color:\n", spriteColorDatabase[entry.Name()])
-			*/ //commented out as it's unwieldy in debugging CI
+			}
 
 		}
 	}

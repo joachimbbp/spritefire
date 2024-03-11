@@ -27,23 +27,18 @@ func main() {
 			sprite.Database,
 			util.SpriteInput,
 			util.DatabaseFolderPath,
+			false,
 		)
 
-	case "printdb":
-		util.PrintColorDatabase("/Users/joachimpfefferkorn/Documents/GitHub/spritefire/ignore/database/sprite_color_db")
-
 	case "resize":
-		spriteResIndices := []int{5} //hard coded at just 5 for CI for no
 		fmt.Println("Resizing Sprites to resolutions:")
-		for _, index := range spriteResIndices {
-			fmt.Println(util.SpriteSizes[index])
-		}
+
 		util.TimeIt(
 			"resizing",
 			sprite.Resize,
 			util.SpriteInput,
 			util.SpriteSizes,
-			spriteResIndices,
+			false,
 		)
 
 	case "video":
@@ -65,6 +60,11 @@ func main() {
 			util.DatabasePath,
 			batchResIndices,
 		)
-
+	case "CI_testing":
+		fmt.Println("Testing for github actions")
+		sprite.Database(util.SpriteInput, util.DatabaseFolderPath, true)
+		sprite.Resize(util.SpriteInput, util.SpriteSizes, true)
+		/*raylib functions use a window and thus cannot be run with github actions
+		Thus this only tests if the database will run*/
 	}
 }
