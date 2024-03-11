@@ -50,3 +50,6 @@ March 11 2024:
     Total Time for full offline test:  4.360724434016666 minutes
 
     Calling it for now as I want to go work on some other projects but there's still some work to be done (see "next features" section)
+
+    Actually, did a bit more work on this. Once compiled, the program seems to be much more stable. Offline tests went great. Total Time for full offline test:  21.236245025 minutes
+    Moving forward I will use smaller clips for dogfooding and always with a compiled executable until I can get the code more stable.

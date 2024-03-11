@@ -95,14 +95,17 @@ func main() {
 			false,
 		)
 
-		videoTime, _, _ := util.TimeIt(
-			"Generating Video",
-			video.Sequence,
+		fmt.Println("Generating video for multiple resolutions")
+		batchResIndices := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+		batchResTime, _, _ := util.TimeIt(
+			"Generating video for multiple resolutions",
+			video.BatchSequence,
 			util.SequencePath,
 			util.DatabasePath,
-			5, //Hard coded at 5 for CI for now. Eventually this should be a batch video (see dev notes)
+			batchResIndices,
 		)
-		totalTime := dbTime + resizeTime + videoTime
+
+		totalTime := dbTime + resizeTime + batchResTime
 		fmt.Println("Total Time for full offline test: ", totalTime.Minutes(), "minutes")
 	}
 }
