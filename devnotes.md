@@ -3,7 +3,15 @@
     - Once this is fixed, have the CI run a batch (not just video)
 
 # PULL REQUESTS AND CONTRIBUTERS
-- feel free to contact jbbpfefferkorn@gmail.com for any questions
+- feel free to contact me at jbbpfefferkorn@gmail.com for any questions
+- 
+
+# WISH LIST
+- Better CI tools which work with raylib
+- Raylib sprite resize
+- Goroutine database creation
+- Fix issue with crashing while processing large batches (see known bugs)
+- Generate docs
 
 # BLOG:
 March 01 2024:
@@ -37,3 +45,8 @@ March 11 2024:
     However, there seems to be a memory leak (or something) that causes the program to crash after processing many sprites, especially at a higher "reslolution" (meaning, confusingly, a lower sprite resolution, thus more sprites per image)
     Adding After Effects switcher.
     Upon further investigation, it does not appear to be a memory leak. It just crashes at some point.
+
+    Github actions do not take in raylib, so built out an offline testing case in main which runs the whole project from no resized sprites or database to a final image.
+    Total Time for full offline test:  4.360724434016666 minutes
+
+    Calling it for now as I want to go work on some other projects but there's still some work to be done (see "next features" section)

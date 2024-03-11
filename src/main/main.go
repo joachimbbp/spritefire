@@ -66,5 +66,34 @@ func main() {
 		sprite.Resize(util.SpriteInput, util.SpriteSizes, true)
 		/*raylib functions use a window and thus cannot be run with github actions
 		Thus this only tests if the database will run*/
+
+	case "full_offline_test":
+		fmt.Println("Full Offline Test")
+		//TODO: is there a way to dry this?
+
+		dbTime, _, _ := util.TimeIt(
+			"database creation",
+			sprite.Database,
+			util.SpriteInput,
+			util.DatabaseFolderPath,
+			false,
+		)
+		resizeTime, _, _ := util.TimeIt(
+			"resizing",
+			sprite.Resize,
+			util.SpriteInput,
+			util.SpriteSizes,
+			false,
+		)
+
+		videoTime, _, _ := util.TimeIt(
+			"Generating Video",
+			video.Sequence,
+			util.SequencePath,
+			util.DatabasePath,
+			5, //set this to choose the desired resolution. Hard coded at 5 for CI for now
+		)
+		totalTime := dbTime + resizeTime + videoTime
+		fmt.Println("Total Time for full offline test: ", totalTime.Minutes(), "minutes")
 	}
 }
