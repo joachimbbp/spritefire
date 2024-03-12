@@ -24,13 +24,13 @@ func main() {
 	inputSequence := util.SequencePath
 
 	var spriteSizeIndex int
-	if len(os.Args) == 3 {
-		spriteSizeIndex, _ = strconv.Atoi(os.Args[2])
-	}
 
-	if len(os.Args) == 4 && mode == "video" || mode == "batchRes" {
+	if len(os.Args) == 4 && mode == "video" {
 		spriteSizeIndex, _ = strconv.Atoi(os.Args[2])
 		inputSequence = os.Args[3]
+	}
+	if len(os.Args) == 3 && mode == "batchRes" {
+		inputSequence = os.Args[2]
 	}
 
 	switch mode {
