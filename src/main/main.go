@@ -13,18 +13,24 @@ import (
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: main.go <arg> <sprite size index>")
-		fmt.Println("args: database, printdb, resize, video <sprite size index>, batchRes, CI_testing, full_offline_test")
+		fmt.Println("args:\ndatabase\nprintdb\nresize\nvideo <sprite size index> <image sequence path>\nbatchRes <image sequence path>\nCI_testing\nfull_offline_test")
 		fmt.Println("Sprite Sizes by Index:")
 		fmt.Println("0: 120\n1: 80\n2: 60\n3: 48\n4: 40\n5: 30\n6: 24\n7: 16\n8: 15\n9: 12")
 		//			{120, 		80, 	60, 	48,   40,    30,   24,    16,    15,    12}
 		fmt.Println("See readme for more information about how to use this program")
 		return
 	}
-
 	mode := os.Args[1]
+	inputSequence := util.SequencePath
+
 	var spriteSizeIndex int
 	if len(os.Args) == 3 {
 		spriteSizeIndex, _ = strconv.Atoi(os.Args[2])
+	}
+
+	if len(os.Args) == 4 && mode == "video" || mode == "batchRes" {
+		spriteSizeIndex, _ = strconv.Atoi(os.Args[2])
+		inputSequence = os.Args[3]
 	}
 
 	switch mode {
@@ -51,10 +57,12 @@ func main() {
 
 	case "video":
 		fmt.Println("Generating Video")
+		fmt.Println(inputSequence, spriteSizeIndex)
+
 		util.TimeIt(
 			"Generating Video",
 			video.Sequence,
-			util.SequencePath,
+			inputSequence,
 			util.DatabasePath,
 			spriteSizeIndex,
 		)
@@ -65,7 +73,7 @@ func main() {
 		util.TimeIt(
 			"Generating video for multiple resolutions",
 			video.BatchSequence,
-			util.SequencePath,
+			inputSequence,
 			util.DatabasePath,
 			batchResIndices,
 		)
