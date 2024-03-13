@@ -1,7 +1,7 @@
 # Readme
 ![A mosaic right out of spritefire](readme_assets/dive.png)
 
-Spritefire is a program which converts image sequences into a mosaic of sprites. It does this by matching each “tile” with the sprite that has the closest color. By default, those sprites are Noto emojis (found in the asset folder), but you could build your own library of sprites if you wish.
+Spritefire is a program which converts image sequences into a mosaic of sprites. It does this by matching each “tile” with the sprite that has the closest color. By default, those sprites are Noto emojis (found in the asset folder) but you could build your own library of sprites if you wish.
 
 ![Taking advantage of the alpha channel to do some cool compositing](readme_assets/eye.png)
 Spritefire exports .png files with an alpha layer, allowing for more possibilities when compositing.
