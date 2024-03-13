@@ -12,7 +12,7 @@ import (
 
 //TODO run in parallel with goroutines or (better yet) raylib
 
-func Resize(spriteFolder string, resizedFolder string) {
+func Resize(spriteFolder string, resizedFolder string, ci bool) {
 	util.CreateIfNotExist(resizedFolder)
 
 	for _, resolution := range util.ResizeResolutions {
@@ -29,10 +29,11 @@ func Resize(spriteFolder string, resizedFolder string) {
 		}
 
 		for _, sprite := range sprites {
-
-			fmt.Println("\nCreating Resized Sprite")
-			fmt.Println("Resolution:\n", resolution)
-			fmt.Println("Sprite:\n", sprite)
+			if !ci {
+				fmt.Println("\nCreating Resized Sprite")
+				fmt.Println("Resolution:\n", resolution)
+				fmt.Println("Sprite:\n", sprite)
+			}
 
 			spritePath := filepath.Join(spriteFolder, sprite.Name())
 
