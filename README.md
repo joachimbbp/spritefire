@@ -47,4 +47,6 @@ Takes in a folder of images and pulls out subject specific sprites from them
 ### Read Sprite Alpha As
 Alpha channels in sprites can be read as either red, blue, green, luma, or black, so you can composite with different background colors
 ### GUI
-Adjust settings (such as alpha compensation) in a raylib gui. You should be able to run everything through this
+Adjust settings (such as alpha compensation) in a raylib GUI. You should be able to run everything through this new GUI.
+### LUT
+Match the sprites using a Look Up Table
