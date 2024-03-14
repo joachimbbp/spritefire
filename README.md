@@ -1,13 +1,9 @@
-![A still image from Spritefire. Input Image Source: pexels](readme_assets/inverted_alpha.png)
 # Spritefire
-Converts image sequences into a mosaic of smaller images.
-
-Spritefire is a program which converts image sequences into a mosaic of sprites. It does this by matching each “tile” with the sprite that has the closest color. By default, those sprites are Noto Emojis (found in the asset folder), but you could build your own library of sprites if you wish.
-
-Spritefire exports .png files with an alpha layer, allowing for more possibilities when compositing.
+Spritefire is a simple graphics program which converts images and videos into mosaics of many tiny images.
 
 # Implementation
 ![Taking advantage of the alpha channel to do some cool compositing. Input Image Source: Joachim Pfefferkorn](readme_assets/eye.png)
+Spritefire is a program which converts image sequences into a mosaic of sprites. It does this by matching each “tile” with the sprite that has the closest color. By default, those sprites are Noto Emojis (found in the asset folder), but you could build your own library of sprites if you wish.
 ## Overview
 Before creating a mosaic, Spritefire must generate a database of the average color for each sprite. This average is determined by adding all the red, green, and blue values in each pixel and then dividing each channel by the number of pixels in the sprite.
 After the user determines desired size of the tiles, the source image is resized so that there is only one pixel for each tile. The program then iterates through each pixel in the image, matching it to the closest sprite. These matches are saved to a temporary `canvas`, which is used by the `draw` function to render and save the image.
@@ -74,7 +70,7 @@ If you wish to generate all possible sprite sizes you can do so with `./main bat
 The AE file included provides a template for switching quickly between resolutions. It should link automatically to sequences generated with the `full_full_offline_test`
 
 # Roadmap
-![Input Image Source: pexels](readme_assets/resolutions.jpg)
+![Input Image Source: pexels](readme_assets/15_roadmap.png)
 ## Up Next:
 ### Front-end
 - [ ] User friendly binary file that anyone can use without having to compile the source code themselves
@@ -97,3 +93,5 @@ Takes in a folder of images and generates appropriately sized sprites of specifi
 Alpha channels in sprites can be read as either red, blue, green, luma, or black, so you can composite with different background colors.
 ### GUI
 Adjust settings (such as alpha compensation) in a raylib gui. You should be able to run everything through this new interface.
+
+![A still image from Spritefire. Input Image Source: pexels](readme_assets/inverted_alpha.png)
