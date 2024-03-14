@@ -55,9 +55,7 @@ jobs:
       - name: Install vips
         run: |
           sudo apt-get update
-          sudo apt-get install -y libvips-dev libwayland-client0 libwayland-dev libxkbcommon-dev libxcursor-dev libxrandr-dev
-          cd src/main
-          go build
+          sudo apt-get install -y libvips-dev libwayland-client0 libwayland-dev libxkbcommon-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libgl1-mesa-dev
       - name: Custom Continuous Integration Tests
         run: |
           cd src/main
