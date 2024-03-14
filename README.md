@@ -21,7 +21,7 @@ Originally, Spritefire used a naive search to find the closest sprite for a give
 ![A previous version of spritefire using alpha compensation. Input Image Source: Mishima: A Life in Four Chapters](readme_assets/alpha_compensation.png)
 A previous version of Spritefire attempted to use the scalable dimensionality of K-D trees to incorporate the alpha layer. After all, what is alpha if not simply an additional dimension to `RGB` space? This worked, technically, but provided some disappointing results, artistically. When compensating for the alpha layer, the program did what it was told: matching only fully opaque sprites to the fully opaque tiles. Unfortunately, given that most emojis heavily rely on alpha layers, this severely limited the amount of emojis used on most images (see above).
 A possible solve would have been to key out the darker pixels when generating the source .png sequence. This, however, adds an extra step and is hard to control without a realtime GUI to monitor the results.
-![Example of using the alpha layer to composite. Input Image Source: pexels](readme_assets/fire_breathing_alpha.png)
+![Example of using the alpha layer to composite. Input Image Source: pexels](readme_assets/fire_breathing_alpha.png) \n
 As a compromise, the program now will read source alpha and simply elect not to draw a tile if the given source pixel is transparent. This allows for some flexibility when compositing. Note that the transparent pixels in the Noto Emojis are totally black, so darker areas in the source image will result in more transparent areas in the final mosaic output.
 
 # Instructions for Your First Project
