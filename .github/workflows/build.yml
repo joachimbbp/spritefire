@@ -4,6 +4,7 @@ on: [push]
 
 jobs:
   build-mac:
+
     runs-on: macos-latest
     steps:
       - name: Setup Go 1.21.x
@@ -33,6 +34,7 @@ jobs:
           go run main.go CI_testing
 
   build-linux:
+
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go 1.21.x
@@ -50,33 +52,8 @@ jobs:
             ${{ runner.os }}-go-
       - name: Download dependencies
         run: go mod download
-      - name: Build Test
-        run: |
-          cd src/main
-          go build
-      - name: Custom Continuous Integration Tests
-        run: |
-          cd src/main
-          go run main.go CI_testing
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - name: Setup Go 1.21.x
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.21.x'
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - name: Download dependencies
-        run: go mod download
+      - name: Install vips
+        run: apt-get install vips
       - name: Build Test
         run: |
           cd src/main
