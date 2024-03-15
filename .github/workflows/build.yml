@@ -82,7 +82,7 @@ jobs:
         run: go mod download
       - name: Install libvips
         run: |
-          curl -L -o vips.tar.gz https://github.com/libvips/libvips/releases/download/v8.12.1/vips-8.12.1-win64-web.tar.gz
+          curl -L -o vips.tar.gz https://github.com/libvips/build-win64-mxe/releases/download/v8.15.2/vips-dev-w32-web-8.15.2-static.zip
           tar xvf vips.tar.gz
           echo "$PWD/vips-8.12.1/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Build Test
