@@ -1,5 +1,5 @@
 # Spritefire
-![Taking advantage of the alpha channel to do some cool compositing. Input Image Source: Joachim Pfefferkorn](readme_assets/eye.png)
+![[Taking advantage of the alpha channel to do some cool compositing. Input Image Source: Joachim Pfefferkorn](https://www.youtube.com/watch?v=3s3X14-8DFA)](readme_assets/eye.png)
 <br>Spritefire is a simple graphics program which converts images and videos into mosaics of many tiny images.
 
 # Implementation
