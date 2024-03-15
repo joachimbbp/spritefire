@@ -1,6 +1,7 @@
 # Spritefire
 ![[Taking advantage of the alpha channel to do some cool compositing. Input Image Source: Joachim Pfefferkorn](https://www.youtube.com/watch?v=3s3X14-8DFA)](readme_assets/eye.png)
 <br>Spritefire is a simple graphics program which converts images and videos into mosaics of many tiny images.
+<br>[Youtube Link](https://www.youtube.com/watch?v=3s3X14-8DFA)
 
 # Implementation
 By default, sprites are Noto Emojis (found in the asset folder), but you could build your own library of sprites if you wish.
