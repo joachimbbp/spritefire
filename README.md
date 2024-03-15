@@ -97,4 +97,4 @@ Alpha channels in sprites can be read as either red, blue, green, luma, or black
 ### GUI
 Adjust settings (such as alpha compensation) in a raylib gui. You should be able to run everything through this new interface.
 <br>
-![A still image from Spritefire. Input Image Source: pexels](readme_assets/inverted_alpha.png)
+![A still image from Spritefire. Input Image Source: pexels](readme_assets/inverted_alpha_50.png)
