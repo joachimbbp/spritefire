@@ -3,7 +3,7 @@ Spritefire is a simple graphics program which converts images and videos into mo
 
 # Overview
 ![Taking advantage of the alpha channel to do some cool compositing. Input Image Source: Joachim Pfefferkorn](readme_assets/eye.png)
-Spritefire takes in a source image and matches each pixel in a down-resed version to the sprite with the closest color. By default, those sprites are Noto Emojis (found in the asset folder), but you could build your own library of sprites if you wish.
+Spritefire takes in a source image, down-reses it, and matches the sprite with the closest color to each pixel. By default, those sprites are Noto Emojis (found in the asset folder), but you could build your own library of sprites if you wish.
 Before creating a mosaic, Spritefire must generate a database of the average color for each sprite. This average is determined by adding all the red, green, and blue values in each pixel and then dividing each channel by the number of pixels in the sprite.
 After the user determines desired size of the tiles, the source image is resized so that there is only one pixel for each tile. The program then iterates through each pixel in the image, matching it to the closest sprite. These matches are saved to a temporary `canvas`, which is used by the `draw` function to render and save the image.
 
