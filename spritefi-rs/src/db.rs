@@ -5,17 +5,28 @@ use std::{
 
 use crate::char_emoji::CharEmoji;
 use fixed::{types::extra::U0, FixedU8};
-use image::Rgb;
+use image::{DynamicImage, GenericImage, GenericImageView, Rgb};
 use kiddo::fixed::{distance::SquaredEuclidean, kdtree::KdTree};
+use postcard::{from_bytes, to_allocvec, to_vec};
+use serde::{Deserialize, Serialize};
 
 type Fxd = FixedU8<U0>;
 
+#[derive(Serialize, Deserialize)]
 pub struct EmojiDatabase {
     kdtree: KdTree<Fxd, u32, 3, 32, u32>,
     symbols: Vec<char>,
 }
 
 impl EmojiDatabase {
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        from_bytes(bytes).unwrap()
+    }
+
+    pub fn to_bytes(&self) -> Vec<u8> {
+        to_allocvec(&self).unwrap()
+    }
+
     pub fn from_emojis(emojis: Vec<CharEmoji>) -> Self {
         let (symbols, colors): (Vec<_>, Vec<_>) = emojis
             .into_iter()
@@ -102,5 +113,46 @@ impl EmojiDatabase {
         }
 
         EmojiDatabase::from_emojis(emojis)
+    }
+
+    pub fn emojify_image(&self, img: DynamicImage, pool_size: u32) -> Vec<Vec<char>> {
+        let (width, height) = img.dimensions();
+
+        let num_squares_x = width / pool_size;
+        let num_squares_y = height / pool_size;
+
+        let mut emojis: Vec<Vec<char>> = Vec::new();
+
+        for y in 0..num_squares_y {
+            let mut row: Vec<char> = Vec::new();
+            for x in 0..num_squares_x {
+                let mut sum_r = 0;
+                let mut sum_g = 0;
+                let mut sum_b = 0;
+
+                for j in 0..pool_size {
+                    for i in 0..pool_size {
+                        let px = x * pool_size + i;
+                        let py = y * pool_size + j;
+                        if px < width && py < height {
+                            let pixel = img.get_pixel(px, py);
+                            sum_r += pixel[0] as u32;
+                            sum_g += pixel[1] as u32;
+                            sum_b += pixel[2] as u32;
+                        }
+                    }
+                }
+
+                let num_pixels = pool_size * pool_size;
+                let avg_r = (sum_r / num_pixels) as u8;
+                let avg_g = (sum_g / num_pixels) as u8;
+                let avg_b = (sum_b / num_pixels) as u8;
+
+                row.push(self.lookup_closest_emoji(Rgb([avg_r, avg_g, avg_b])));
+            }
+            emojis.push(row);
+        }
+
+        emojis
     }
 }
