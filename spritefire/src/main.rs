@@ -1,8 +1,15 @@
+/*
 use spritefire::db::EmojiDatabase;
 use std::env;
 use std::fs;
+*/
+use spritefire::build_sprites;
 
 fn main() {
+    let test_input = "/Users/joachimpfefferkorn/repos/spritefire/assets/sprites_512";
+    _ = build_sprites(&test_input);
+    //Ishan's web code
+    /*
     let args: Vec<_> = env::args().collect();
 
     if args[1] == "write" {
@@ -20,4 +27,5 @@ fn main() {
             println!("{}", emoji_row.iter().cloned().collect::<String>());
         }
     }
+    */
 }

@@ -1,58 +1,38 @@
-use db::EmojiDatabase;
-use image::{load_from_memory_with_format, ImageFormat};
-use std::sync::OnceLock;
-use wasm_bindgen::prelude::*;
+use std::fs::{self, DirEntry};
+use std::io;
+use std::path::{Path, PathBuf};
 
-pub mod char_emoji;
-pub mod db;
+//MVP:
+//fn simple_resize
+//  resizes every image in a folder to proper spritefire resolution
 
-pub fn set_panic_hook() {
-    // When the `console_error_panic_hook` feature is enabled, we can call the
-    // `set_panic_hook` function at least once during initialization, and then
-    // we will get better error messages if our code ever panics.
-    //
-    // For more details see
-    // https://github.com/rustwasm/console_error_panic_hook#readme
-    #[cfg(feature = "console_error_panic_hook")]
-    console_error_panic_hook::set_once();
+pub fn build_sprites(input_path: &str) -> std::io::Result<()> {
+    let folder = Path::new(input_path);
+    if folder.is_dir() {
+        for entry in fs::read_dir(folder)? {
+            let entry = entry?;
+            let image_path = entry.path();
+            let is_image = match image_path.extension() {
+                Some(image_path) => {
+                    let ext = image_path.to_string_lossy().to_lowercase();
+                    ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "gif" || ext == "bmp"
+                }
+                None => false,
+            };
+            if is_image {
+                simple_resize(&image_path);
+            }
+        }
+    }
+    Ok(())
 }
 
-#[wasm_bindgen]
-extern "C" {
-    fn alert(s: &str);
+fn simple_resize(image_path: &PathBuf) {
+    print!("{}", image_path.display().to_string())
 }
 
-#[wasm_bindgen]
-pub fn greet() {
-    alert("Hello, emogasm!");
-}
-
-static DB: OnceLock<EmojiDatabase> = OnceLock::new();
-
-#[wasm_bindgen]
-pub fn set_db() {
-    let bytes = include_bytes!("../db.dat");
-    let emoji_db = EmojiDatabase::from_bytes(bytes);
-    DB.set(emoji_db).unwrap();
-}
-
-fn get_db() -> &'static EmojiDatabase {
-    DB.get().unwrap()
-}
-
-#[wasm_bindgen]
-pub fn process_img(buf: &[u8], pool_size: u32) -> String {
-    let img = load_from_memory_with_format(buf, ImageFormat::Png).unwrap();
-    let emojis = get_db().emojify_image(img, pool_size);
-
-    let mut output = String::new();
-
-    emojis.iter().for_each(|line| {
-        line.iter().for_each(|symbol| {
-            output.push(*symbol);
-        });
-        output.push('\n');
-    });
-
-    output
-}
+//Advanced:
+//fn alpha background
+//  detects background and replaces it with an alpha layer
+//fn object object detection
+//  Crops out specific subjects, creates thumbnails, names after the object in the frame
