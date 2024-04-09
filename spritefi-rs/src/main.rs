@@ -1,4 +1,4 @@
-use spritefi_rs::db::EmojiDatabase;
+use spritefire::db::EmojiDatabase;
 use std::env;
 use std::fs;
 
