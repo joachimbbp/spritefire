@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processor</title>
+    <script type="module">
+        import init, { set_db, process_img } from "./pkg/spritefi_rs.js"
+        await init()
+        set_db()
+
+        // Function to handle file selection and read the file
+        function handleFileSelection(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return; // No file selected
+            }
+
+            const reader = new FileReader();
+            // set hook to execute after reading the file
+            reader.addEventListener("load", (event) => {
+                const bytes = new Uint8Array(event.target.result);
+                // Passing image bytes to the processing function
+                const resultString = process_img(bytes, 4);
+                // Displaying the returned string in the text box
+                document.getElementById("resultText").value = resultString;
+            });
+            
+            // start reading file
+            reader.readAsArrayBuffer(file);
+        }
+
+        let filePicker = document.getElementById("filePicker")
+        filePicker.addEventListener("change", (event) => { console.log("reached here!! hey!"); handleFileSelection(event) })
+    </script>
+</head>
+<body>
+    <h2>Image Processor</h2>
+    <input id="filePicker" type="file" accept=".png">
+    <br><br>
+    <textarea id="resultText" rows="4" cols="50" placeholder="Processed image result will appear here..."></textarea>
+</body>
+</html>
