@@ -5,9 +5,9 @@ use std::{
 
 use crate::char_emoji::CharEmoji;
 use fixed::{types::extra::U0, FixedU8};
-use image::{DynamicImage, GenericImage, GenericImageView, Rgb};
+use image::{DynamicImage, GenericImageView, Rgb};
 use kiddo::fixed::{distance::SquaredEuclidean, kdtree::KdTree};
-use postcard::{from_bytes, to_allocvec, to_vec};
+use postcard::{from_bytes, to_allocvec};
 use serde::{Deserialize, Serialize};
 
 type Fxd = FixedU8<U0>;

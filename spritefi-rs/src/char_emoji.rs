@@ -1,4 +1,4 @@
-use image::{self, DynamicImage, GenericImageView, Rgb};
+use image::{self, DynamicImage, GenericImageView};
 
 // Define a struct to represent an emoji
 #[derive(Debug, Copy, Clone)]
@@ -53,11 +53,5 @@ impl TryFrom<(DynamicImage, &str)> for CharEmoji {
         } else {
             Err("Empty string cannot be parsed into emoji".to_string())
         }
-    }
-}
-
-impl CharEmoji {
-    fn new(symbol: char, color: [u8; 3]) -> Self {
-        Self { symbol, color }
     }
 }

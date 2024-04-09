@@ -1,10 +1,6 @@
-use image::GenericImageView;
-use image::Rgb;
-use spritefi_rs::char_emoji::CharEmoji;
 use spritefi_rs::db::EmojiDatabase;
 use std::env;
 use std::fs;
-use std::path::Path;
 
 fn main() {
     let args: Vec<_> = env::args().collect();

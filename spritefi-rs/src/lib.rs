@@ -1,8 +1,6 @@
-use std::env;
-
 use db::EmojiDatabase;
 use image::{load_from_memory_with_format, ImageFormat};
-use std::sync::{Mutex, OnceLock};
+use std::sync::OnceLock;
 use wasm_bindgen::prelude::*;
 
 pub mod char_emoji;
