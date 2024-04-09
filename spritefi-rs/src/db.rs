@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 type Fxd = FixedU8<U0>;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct EmojiDatabase {
     kdtree: KdTree<Fxd, u32, 3, 32, u32>,
     symbols: Vec<char>,

@@ -1,6 +1,8 @@
 use std::env;
 
 use db::EmojiDatabase;
+use image::{load_from_memory_with_format, ImageFormat};
+use std::sync::{Mutex, OnceLock};
 use wasm_bindgen::prelude::*;
 
 pub mod char_emoji;
@@ -27,13 +29,32 @@ pub fn greet() {
     alert("Hello, emogasm!");
 }
 
+static DB: OnceLock<EmojiDatabase> = OnceLock::new();
+
 #[wasm_bindgen]
-pub fn run() {
-    let args = ["abcd", "sdfasdfs"];
-    let emoji_db = EmojiDatabase::from_directory(args[0].clone().into());
-    let img = image::open(args[1].clone()).unwrap();
-    let emojis = emoji_db.emojify_image(img, 7);
-    for emoji_row in emojis.iter() {
-        println!("{}", emoji_row.iter().cloned().collect::<String>());
-    }
+pub fn set_db() {
+    let bytes = include_bytes!("../db.dat");
+    let emoji_db = EmojiDatabase::from_bytes(bytes);
+    DB.set(emoji_db).unwrap();
+}
+
+fn get_db() -> &'static EmojiDatabase {
+    DB.get().unwrap()
+}
+
+#[wasm_bindgen]
+pub fn process_img(buf: &[u8], pool_size: u32) -> String {
+    let img = load_from_memory_with_format(buf, ImageFormat::Png).unwrap();
+    let emojis = get_db().emojify_image(img, pool_size);
+
+    let mut output = String::new();
+
+    emojis.iter().for_each(|line| {
+        line.iter().for_each(|symbol| {
+            output.push(*symbol);
+        });
+        output.push('\n');
+    });
+
+    output
 }
