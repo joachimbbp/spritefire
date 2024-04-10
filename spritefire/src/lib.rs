@@ -1,4 +1,4 @@
-use image::{GenericImageView, ImageError};
+use image::{DynamicImage, GenericImageView, ImageError};
 use std::fs::{self};
 use std::path::{Path, PathBuf};
 
@@ -16,26 +16,69 @@ enum Aspect {
 }
 
 struct Crop {
-    aspect: Aspect,
-    x: u16,
-    y: u16,
-    width: u16,
-    height: u16,
+    _aspect: Aspect,
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+    //u32 is totally overkill but GenericImageView uses it so we're using it
 }
+
 impl Crop {
-    fn simple(image_path: &PathBuf) -> Self {
-        let img = image::open(image_path);
-        //Q: How to handle errors in this sort of thing?
+    fn crop_image(
+        image_path: &PathBuf,
+        crop_boundaries: &Self,
+    ) -> Result<DynamicImage, ImageError> {
+        //TODO this needs its own return type
+        let img = image::open(image_path)?;
+        let subimage = img
+            .view(
+                crop_boundaries.x,
+                crop_boundaries.y,
+                crop_boundaries.width,
+                crop_boundaries.height,
+            )
+            .to_image();
+        Ok(DynamicImage::ImageRgba8(subimage))
     }
-    fn get_aspect(image_path: &PathBuf) -> Aspect {
+
+    //Preparation Techniques
+    fn simple_prep(image_path: &PathBuf) -> Result<Self, ImageError> {
+        let img = image::open(image_path)?;
         let (rx, ry) = img.dimensions();
-        if rx > ry {
+        let aspect = Self::get_aspect(rx, ry)?;
+        let ((x, y), short_side) = match aspect {
+            Aspect::Horizontal => (Self::get_center(rx, ry), ry),
+            Aspect::Vertical => (Self::get_center(ry, rx), rx),
+            Aspect::Square => (Self::get_center(rx, ry), ry),
+        };
+        //width and height will always be the shortest side
+        Ok(Self {
+            _aspect: aspect,
+            x,
+            y,
+            width: short_side,
+            height: short_side,
+        })
+    }
+
+    //Utils
+    fn get_aspect(rx: u32, ry: u32) -> Result<Aspect, ImageError> {
+        Ok(if rx > ry {
             Aspect::Horizontal
         } else if rx < ry {
-            Aspect::Horizontal
+            Aspect::Vertical
         } else {
             Aspect::Square
+        })
+    }
+    fn get_center(long_side: u32, short_side: u32) -> (u32, u32) {
+        if long_side < short_side {
+            panic!("long side is shorter than short side")
         }
+        let x: u32 = long_side / 2;
+        let y: u32 = short_side / 2;
+        (x, y)
     }
 }
 
@@ -57,26 +100,18 @@ pub fn build_sprites(input: &str, save: &str) -> std::io::Result<()> {
             if is_image {
                 print!("is image\n");
                 //TODO: Open image, pass to resize
-                let _ = simple_resize(&image_path, &save);
+                let crop_boundaries = Crop::simple_prep(&image_path).unwrap();
+                let cropped_image = Crop::crop_image(&image_path, &crop_boundaries).unwrap();
+                save_image(cropped_image, save)
+                //error handle later
             }
         }
     }
     Ok(())
 }
 
-fn simple_resize(image_path: &PathBuf, save: &str) -> Result<(), ImageError> {
-    print!("simple resize\n");
-    let img = image::open(image_path)?;
-    let cropped_image = img.view(50, 50, 50, 50).to_image();
-    //view(x,y,width,height)
-    cropped_image.save(Path::new(save).join(image_path.file_name().unwrap()))?;
-    print!("{:?} resized", img);
-    Ok(())
-}
-
-fn read_dimensions(image_path: &PathBuf) -> Result<(u32, u32), ImageError> {
-    let img = image::open(image_path)?;
-    Ok(img.dimensions())
+fn save_image(image: DynamicImage, path: &str) {
+    let _ = image.save(path);
 }
 
 //Advanced:
