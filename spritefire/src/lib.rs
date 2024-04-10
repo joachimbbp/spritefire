@@ -31,10 +31,15 @@ impl Crop {
     ) -> Result<DynamicImage, ImageError> {
         //TODO this needs its own return type
         let img = image::open(image_path)?;
+
+        //view xy is top left. This adjusts for that:
+        let crop_width = (img.width() - crop_boundaries.width) / 2;
+        let crop_height = (img.height() - crop_boundaries.height) / 2;
+
         let subimage = img
             .view(
-                crop_boundaries.x,
-                crop_boundaries.y,
+                crop_width,
+                crop_height,
                 crop_boundaries.width,
                 crop_boundaries.height,
             )
@@ -102,16 +107,16 @@ pub fn build_sprites(input: &str, save: &str) -> std::io::Result<()> {
                 //TODO: Open image, pass to resize
                 let crop_boundaries = Crop::simple_prep(&image_path).unwrap();
                 let cropped_image = Crop::crop_image(&image_path, &crop_boundaries).unwrap();
-                save_image(cropped_image, save)
+                let _ = cropped_image.save(save);
+                let file_name = image_path.file_name().unwrap();
+                let mut save_path = PathBuf::from(save);
+                save_path.push(file_name);
+                let _ = cropped_image.save(save_path);
                 //error handle later
             }
         }
     }
     Ok(())
-}
-
-fn save_image(image: DynamicImage, path: &str) {
-    let _ = image.save(path);
 }
 
 //Advanced:
