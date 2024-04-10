@@ -15,9 +15,7 @@ fn main() {
         let bytes = fs::read(args[2].clone()).unwrap();
         let emoji_db = EmojiDatabase::from_bytes(&bytes);
         let img = image::open(args[3].clone()).unwrap();
-        let emojis = emoji_db.emojify_image(img, 7);
-        for emoji_row in emojis.iter() {
-            println!("{}", emoji_row.iter().cloned().collect::<String>());
-        }
+        let emojis = emoji_db.emojify_image_to_string(img, 7);
+        println!("{}", emojis);
     }
 }

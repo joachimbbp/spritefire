@@ -3,8 +3,8 @@ use image::{load_from_memory_with_format, ImageFormat};
 use std::sync::OnceLock;
 use wasm_bindgen::prelude::*;
 
-pub mod char_emoji;
 pub mod db;
+pub mod emoji;
 
 pub fn set_panic_hook() {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -43,16 +43,5 @@ fn get_db() -> &'static EmojiDatabase {
 #[wasm_bindgen]
 pub fn process_img(buf: &[u8], pool_size: u32) -> String {
     let img = load_from_memory_with_format(buf, ImageFormat::Png).unwrap();
-    let emojis = get_db().emojify_image(img, pool_size);
-
-    let mut output = String::new();
-
-    emojis.iter().for_each(|line| {
-        line.iter().for_each(|symbol| {
-            output.push(*symbol);
-        });
-        output.push('\n');
-    });
-
-    output
+    get_db().emojify_image_to_string(img, pool_size)
 }
