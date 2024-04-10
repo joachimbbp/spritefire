@@ -1,17 +1,19 @@
-use std::fs::{self, DirEntry};
-use std::io;
+use image::{GenericImageView, ImageError};
+use std::fs::{self};
 use std::path::{Path, PathBuf};
 
 //MVP:
 //fn simple_resize
 //  resizes every image in a folder to proper spritefire resolution
 
-pub fn build_sprites(input_path: &str) -> std::io::Result<()> {
-    let folder = Path::new(input_path);
-    if folder.is_dir() {
-        for entry in fs::read_dir(folder)? {
+pub fn build_sprites(input: &str, save: &str) -> std::io::Result<()> {
+    let input_folder = Path::new(input);
+    if input_folder.is_dir() {
+        for entry in fs::read_dir(input_folder)? {
+            print!("resizing {:?}\n", entry);
             let entry = entry?;
             let image_path = entry.path();
+
             let is_image = match image_path.extension() {
                 Some(image_path) => {
                     let ext = image_path.to_string_lossy().to_lowercase();
@@ -20,15 +22,23 @@ pub fn build_sprites(input_path: &str) -> std::io::Result<()> {
                 None => false,
             };
             if is_image {
-                simple_resize(&image_path);
+                print!("is image\n");
+                //TODO: Open image, pass to resize
+                let _ = simple_resize(&image_path, &save);
             }
         }
     }
     Ok(())
 }
 
-fn simple_resize(image_path: &PathBuf) {
-    print!("{}", image_path.display().to_string())
+fn simple_resize(image_path: &PathBuf, save: &str) -> Result<(), ImageError> {
+    print!("simple resize\n");
+    let img = image::open(image_path)?;
+    let cropped_image = img.view(50, 50, 50, 50).to_image();
+    //view(x,y,width,height)
+    cropped_image.save(Path::new(save).join(image_path.file_name().unwrap()))?;
+    print!("{:?} resized", img);
+    Ok(())
 }
 
 //Advanced:

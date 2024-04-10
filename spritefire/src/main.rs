@@ -7,7 +7,8 @@ use spritefire::build_sprites;
 
 fn main() {
     let test_input = "/Users/joachimpfefferkorn/repos/spritefire/assets/sprites_512";
-    _ = build_sprites(&test_input);
+    let test_output: &str = "/Users/joachimpfefferkorn/repos/spritefire/output";
+    let _ = build_sprites(&test_input, test_output);
     //Ishan's web code
     /*
     let args: Vec<_> = env::args().collect();
