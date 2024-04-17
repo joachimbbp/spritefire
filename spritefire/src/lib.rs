@@ -17,20 +17,12 @@ pub fn set_panic_hook() {
     console_error_panic_hook::set_once();
 }
 
-#[wasm_bindgen]
-extern "C" {
-    fn alert(s: &str);
-}
-
-#[wasm_bindgen]
-pub fn greet() {
-    alert("Hello, emogasm!");
-}
-
 static DB: OnceLock<EmojiDatabase> = OnceLock::new();
 
 #[wasm_bindgen]
 pub fn set_db() {
+    set_panic_hook();
+
     let bytes = include_bytes!("../db.dat");
     let emoji_db = EmojiDatabase::from_bytes(bytes);
     DB.set(emoji_db).unwrap();
