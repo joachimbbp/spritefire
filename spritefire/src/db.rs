@@ -99,7 +99,7 @@ impl EmojiDatabase {
                 emoji_unicode_point.push_str(&code_point);
 
                 while let Some(part) = parts.next() {
-                    let code_point = u32::from_str_radix(first, 16).unwrap();
+                    let code_point = u32::from_str_radix(part, 16).unwrap();
                     let code_point = char::from_u32(code_point).unwrap().to_string();
                     emoji_unicode_point.push_str(&code_point);
                 }
