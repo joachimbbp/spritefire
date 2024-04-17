@@ -114,18 +114,17 @@ impl EmojiDatabase {
 
     pub fn emojify_image_to_string(&self, img: DynamicImage, pool_size: u32) -> String {
         let (width, height) = img.dimensions();
-
         let num_squares_x = width / pool_size;
         let num_squares_y = height / pool_size;
 
         let mut emojis: String = String::new();
 
-        for y in 0..num_squares_y {
-            let mut row: Vec<char> = Vec::new();
-            for x in 0..num_squares_x {
+        for y in 0..=num_squares_y {
+            for x in 0..=num_squares_x {
                 let mut sum_r = 0;
                 let mut sum_g = 0;
                 let mut sum_b = 0;
+                let mut pix_count = 0;
 
                 for j in 0..pool_size {
                     for i in 0..pool_size {
@@ -133,19 +132,27 @@ impl EmojiDatabase {
                         let py = y * pool_size + j;
                         if px < width && py < height {
                             let pixel = img.get_pixel(px, py);
-                            sum_r += pixel[0] as u32;
-                            sum_g += pixel[1] as u32;
-                            sum_b += pixel[2] as u32;
+                            if pixel[3] > 0 {
+                                sum_r += pixel[0] as u64;
+                                sum_g += pixel[1] as u64;
+                                sum_b += pixel[2] as u64;
+                                pix_count += 1;
+                            }
                         }
                     }
                 }
 
-                let num_pixels = pool_size * pool_size;
-                let avg_r = (sum_r / num_pixels) as u8;
-                let avg_g = (sum_g / num_pixels) as u8;
-                let avg_b = (sum_b / num_pixels) as u8;
+                // do no find emoji for transparent parts of image
+                if pix_count == 0 {
+                    emojis.push(' ')
+                } else {
+                    let avg_r = (sum_r / pix_count) as u8;
+                    let avg_g = (sum_g / pix_count) as u8;
+                    let avg_b = (sum_b / pix_count) as u8;
 
-                emojis.push_str(&self.lookup_closest_emoji(Rgb([avg_r, avg_g, avg_b])));
+                    let emoji = self.lookup_closest_emoji(Rgb([avg_r, avg_g, avg_b]));
+                    emojis.push_str(&emoji);
+                }
             }
             emojis.push('\n');
         }

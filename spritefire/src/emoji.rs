@@ -22,9 +22,10 @@ impl From<(DynamicImage, String)> for Emoji {
         let (x_dim, y_dim) = image.dimensions();
 
         for y in 0..y_dim {
-            for j in 0..x_dim {
-                let pixel = image.get_pixel(j, y).0;
+            for x in 0..x_dim {
+                let pixel = image.get_pixel(x, y).0;
 
+                // Consider pixel if it is not transparent
                 if pixel[3] > 0 {
                     pix_count += 1;
 
