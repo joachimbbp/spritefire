@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" rel="stylesheet">
 
   <script type="module">
-    import init, {set_db, process_img} from "./pkg/spritefire.js"
+    import init, {set_db, process_img, process_img_data} from "./pkg/spritefire.js"
     await init()
     set_db()
 
@@ -45,15 +45,19 @@
       computeFrame() {
         this.ctx1.drawImage(this.video, 0, 0, this.width, this.height);
 
-        this.c1.toBlob(async (blob) => {
+        // this.c1.toBlob(async (blob) => {
 
-          const bytes = new Uint8Array(await blob.arrayBuffer());
+        //   const bytes = new Uint8Array(await blob.arrayBuffer());
 
-          const resultString = process_img(bytes, 4);
-          // Displaying the returned string in the text box
-          document.getElementById("resultText").value = resultString;
-        });
+        //   const resultString = process_img(bytes, 4);
+        //   // Displaying the returned string in the text box
+        //   document.getElementById("resultText").value = resultString;
+        // });
         const frame = this.ctx1.getImageData(0, 0, this.width, this.height);
+        const resultString = process_img_data(frame, 4);
+        // Displaying the returned string in the text box
+        document.getElementById("resultText").value = resultString;
+        
 
         return;
       },

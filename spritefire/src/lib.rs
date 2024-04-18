@@ -1,7 +1,8 @@
 use db::EmojiDatabase;
-use image::{load_from_memory_with_format, ImageFormat};
+use image::{load_from_memory, load_from_memory_with_format, ImageFormat, Rgba, RgbaImage};
 use std::sync::OnceLock;
 use wasm_bindgen::prelude::*;
+use web_sys::ImageData;
 
 pub mod db;
 pub mod emoji;
@@ -13,7 +14,7 @@ pub fn set_panic_hook() {
     //
     // For more details see
     // https://github.com/rustwasm/console_error_panic_hook#readme
-    #[cfg(feature = "console_error_panic_hook")]
+    // #[cfg(feature = "console_error_panic_hook")]
     console_error_panic_hook::set_once();
 }
 
@@ -35,5 +36,12 @@ fn get_db() -> &'static EmojiDatabase {
 #[wasm_bindgen]
 pub fn process_img(buf: &[u8], pool_size: u32) -> String {
     let img = load_from_memory_with_format(buf, ImageFormat::Png).unwrap();
+    get_db().emojify_image_to_string(img, pool_size)
+}
+
+#[wasm_bindgen]
+pub fn process_img_data(img_data: ImageData, pool_size: u32) -> String {
+    let img = RgbaImage::from_raw(img_data.width(), img_data.height(), img_data.data().0).unwrap();
+    let img = image::DynamicImage::ImageRgba8(img);
     get_db().emojify_image_to_string(img, pool_size)
 }
