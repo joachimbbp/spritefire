@@ -65,7 +65,7 @@ impl EmojiDatabase {
             FixedU8::from_num(rgb[2]),
         ];
 
-        let nearest = self.kdtree.nearest_n::<SquaredEuclidean>(&point, 5);
+        let nearest = self.kdtree.nearest_n::<SquaredEuclidean>(&point, 3);
         let (_, symbol) = nearest
             .iter()
             .map(|item| &self.symbols[item.item as usize])
@@ -128,7 +128,7 @@ impl EmojiDatabase {
                     let avg_g = (sum_g / pix_count) as u8;
                     let avg_b = (sum_b / pix_count) as u8;
 
-                    let emoji = self.lookup_closest_emoji(Rgb([avg_r, avg_g, avg_b]));
+                    let emoji = self.lookup_closest_dense_emoji(Rgb([avg_r, avg_g, avg_b]));
                     emojis.push_str(&emoji);
                 }
             }

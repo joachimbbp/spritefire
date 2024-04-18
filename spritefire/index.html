@@ -1,43 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Processor</title>
-    <script type="module">
-        import init, { set_db, process_img } from "./pkg/spritefire.js"
-        await init()
-        set_db()
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Processor</title>
 
-        // Function to handle file selection and read the file
-        function handleFileSelection(event) {
-            const file = event.target.files[0];
-            if (!file) {
-                return; // No file selected
-            }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" rel="stylesheet">
 
-            const reader = new FileReader();
-            // set hook to execute after reading the file
-            reader.addEventListener("load", (event) => {
-                const bytes = new Uint8Array(event.target.result);
-                // Passing image bytes to the processing function
-                const resultString = process_img(bytes, 4);
-                // Displaying the returned string in the text box
-                document.getElementById("resultText").value = resultString;
-            });
-            
-            // start reading file
-            reader.readAsArrayBuffer(file);
+  <script type="module">
+    import init, {set_db, process_img} from "./pkg/spritefire.js"
+    await init()
+    set_db()
+
+    const processor = {
+      timerCallback() {
+        if (this.video.paused || this.video.ended) {
+          return;
         }
+        this.computeFrame();
+        setTimeout(() => {
+          this.timerCallback();
+        }, 84); // roughly 12 frames per second
+      },
 
-        let filePicker = document.getElementById("filePicker")
-        filePicker.addEventListener("change", (event) => { console.log("reached here!! hey!"); handleFileSelection(event) })
-    </script>
+      doLoad() {
+        this.video = document.getElementById("my-video");
+        this.c1 = document.getElementById("my-canvas");
+        this.ctx1 = this.c1.getContext("2d");
+
+        this.video.addEventListener(
+          "play",
+          () => {
+            this.width = this.video.width;
+            this.height = this.video.height;
+            this.timerCallback();
+          },
+          false,
+        );
+      },
+
+      computeFrame() {
+        this.ctx1.drawImage(this.video, 0, 0, this.width, this.height);
+
+        this.c1.toBlob(async (blob) => {
+
+          const bytes = new Uint8Array(await blob.arrayBuffer());
+
+          const resultString = process_img(bytes, 4);
+          // Displaying the returned string in the text box
+          document.getElementById("resultText").value = resultString;
+        });
+        const frame = this.ctx1.getImageData(0, 0, this.width, this.height);
+
+        return;
+      },
+    };
+
+    // Function to handle file selection and read the file
+    function handleFileSelection(event) {
+      const file = event.target.files[0];
+      if (!file) {
+        return; // No file selected
+      }
+
+      const reader = new FileReader();
+      // set hook to execute after reading the file
+      reader.addEventListener("load", (event) => {
+        const bytes = new Uint8Array(event.target.result);
+        // Passing image bytes to the processing function
+        const resultString = process_img(bytes, 4);
+        // Displaying the returned string in the text box
+        document.getElementById("resultText").value = resultString;
+      });
+
+      // start reading file
+      reader.readAsArrayBuffer(file);
+    }
+
+    // let filePicker = document.getElementById("filePicker")
+    // filePicker.addEventListener("change", (event) => {console.log("reached here!! hey!"); handleFileSelection(event)})
+
+    processor.doLoad()
+  </script>
 </head>
+
 <body>
-    <h2>Image Processor</h2>
-    <input id="filePicker" type="file" accept=".png">
-    <br><br>
-    <textarea id="resultText" rows="4" cols="50" placeholder="Processed image result will appear here..."></textarea>
+  <h2>Image Processor</h2>
+  <video id="my-video" controls width="480" height="270" crossorigin="anonymous">
+    <source src="https://jplayer.org/video/webm/Big_Buck_Bunny_Trailer.webm" type="video/webm" />
+    <source src="https://jplayer.org/video/m4v/Big_Buck_Bunny_Trailer.m4v" type="video/mp4" />
+  </video>
+
+  <canvas id="my-canvas" width="480" height="270"></canvas>
+
+  <textarea id="resultText" rows="4" cols="50" placeholder="Processed image result will appear here..."></textarea>
+
+  <style>
+    #resultText {
+      font-family: "Noto Color Emoji", sans-serif;
+    }
+  </style>
 </body>
+
 </html>
