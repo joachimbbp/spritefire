@@ -16,7 +16,7 @@ type Fxd = FixedU8<U0>;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EmojiDatabase {
     kdtree: KdTree<Fxd, u32, 3, 32, u32>,
-    symbols: Vec<(u64, String)>,
+    symbols: Vec<Emoji>,
 }
 
 impl EmojiDatabase {
@@ -29,33 +29,20 @@ impl EmojiDatabase {
     }
 
     pub fn from_emojis(emojis: Vec<Emoji>) -> Self {
-        let (symbols, colors): (Vec<_>, Vec<_>) = emojis
-            .into_iter()
-            .map(
-                |Emoji {
-                     symbol,
-                     color,
-                     density: transparent,
-                 }| {
-                    let [r, g, b] = color;
-                    (
-                        (transparent, symbol),
-                        [
-                            FixedU8::from_num(r),
-                            FixedU8::from_num(g),
-                            FixedU8::from_num(b),
-                        ],
-                    )
-                },
-            )
-            .unzip();
-
         let mut kdtree = KdTree::new();
-        colors.into_iter().enumerate().for_each(|(i, color)| {
+        emojis.iter().enumerate().for_each(|(i, emoji)| {
+            let color = [
+                FixedU8::from_num(emoji.color[0]),
+                FixedU8::from_num(emoji.color[1]),
+                FixedU8::from_num(emoji.color[2]),
+            ];
             kdtree.add(&color, i as u32);
         });
 
-        Self { symbols, kdtree }
+        Self {
+            symbols: emojis,
+            kdtree,
+        }
     }
 
     pub fn lookup_closest_dense_emoji(&self, rgb: Rgb<u8>) -> &str {
@@ -68,7 +55,10 @@ impl EmojiDatabase {
         let nearest = self.kdtree.nearest_n::<SquaredEuclidean>(&point, 3);
         let (_, symbol) = nearest
             .iter()
-            .map(|item| &self.symbols[item.item as usize])
+            .map(|item| {
+                let emoji = &self.symbols[item.item as usize];
+                (emoji.density, &emoji.symbol)
+            })
             .max()
             .unwrap();
         symbol
@@ -82,7 +72,7 @@ impl EmojiDatabase {
         ];
 
         let index: usize = self.kdtree.nearest_one::<SquaredEuclidean>(&point).item as usize;
-        &self.symbols[index].1
+        &self.symbols[index].symbol
     }
 
     pub fn new_from_directory(dir_path: PathBuf) -> Self {

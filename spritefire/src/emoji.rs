@@ -1,7 +1,8 @@
 use image::{self, DynamicImage, GenericImageView};
+use serde::{Deserialize, Serialize};
 
 /// Emoji symbol with the average color of its picture
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Emoji {
     /// Unicode symbol for the emoji
     pub symbol: String,
