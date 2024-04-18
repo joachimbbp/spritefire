@@ -7,6 +7,8 @@ pub struct Emoji {
     pub symbol: String,
     /// Average color for emoji
     pub color: [u8; 3],
+    /// More pixels with color make for a more dense emoji image
+    pub density: u64,
 }
 
 impl From<(DynamicImage, String)> for Emoji {
@@ -43,6 +45,7 @@ impl From<(DynamicImage, String)> for Emoji {
         Self {
             symbol,
             color: [avg_r as u8, avg_g as u8, avg_b as u8],
+            density: pix_count,
         }
     }
 }

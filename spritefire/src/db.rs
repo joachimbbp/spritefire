@@ -16,7 +16,7 @@ type Fxd = FixedU8<U0>;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EmojiDatabase {
     kdtree: KdTree<Fxd, u32, 3, 32, u32>,
-    symbols: Vec<String>,
+    symbols: Vec<(u64, String)>,
 }
 
 impl EmojiDatabase {
@@ -31,17 +31,23 @@ impl EmojiDatabase {
     pub fn from_emojis(emojis: Vec<Emoji>) -> Self {
         let (symbols, colors): (Vec<_>, Vec<_>) = emojis
             .into_iter()
-            .map(|Emoji { symbol, color }| {
-                let [r, g, b] = color;
-                (
-                    symbol,
-                    [
-                        FixedU8::from_num(r),
-                        FixedU8::from_num(g),
-                        FixedU8::from_num(b),
-                    ],
-                )
-            })
+            .map(
+                |Emoji {
+                     symbol,
+                     color,
+                     density: transparent,
+                 }| {
+                    let [r, g, b] = color;
+                    (
+                        (transparent, symbol),
+                        [
+                            FixedU8::from_num(r),
+                            FixedU8::from_num(g),
+                            FixedU8::from_num(b),
+                        ],
+                    )
+                },
+            )
             .unzip();
 
         let mut kdtree = KdTree::new();
@@ -52,6 +58,22 @@ impl EmojiDatabase {
         Self { symbols, kdtree }
     }
 
+    pub fn lookup_closest_dense_emoji(&self, rgb: Rgb<u8>) -> &str {
+        let point = [
+            FixedU8::from_num(rgb[0]),
+            FixedU8::from_num(rgb[1]),
+            FixedU8::from_num(rgb[2]),
+        ];
+
+        let nearest = self.kdtree.nearest_n::<SquaredEuclidean>(&point, 5);
+        let (_, symbol) = nearest
+            .iter()
+            .map(|item| &self.symbols[item.item as usize])
+            .max()
+            .unwrap();
+        symbol
+    }
+
     pub fn lookup_closest_emoji(&self, rgb: Rgb<u8>) -> &str {
         let point = [
             FixedU8::from_num(rgb[0]),
@@ -59,10 +81,10 @@ impl EmojiDatabase {
             FixedU8::from_num(rgb[2]),
         ];
 
-        let nearest = self.kdtree.nearest_one::<SquaredEuclidean>(&point);
-        let index = nearest.item as usize;
-        &self.symbols[index]
+        let index: usize = self.kdtree.nearest_one::<SquaredEuclidean>(&point).item as usize;
+        &self.symbols[index].1
     }
+
     pub fn new_from_directory(dir_path: PathBuf) -> Self {
         let emojis = read_emojis_from_directory(dir_path);
         EmojiDatabase::from_emojis(emojis)
