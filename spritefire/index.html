@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Image Processor</title>
+  <title>🪞Emoji Mirror🪞</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +21,7 @@
           return;
         }
         this.computeFrame();
-        setTimeout(() => {
+        requestAnimationFrame(() => {
           this.timerCallback();
         }, 84); // roughly 12 frames per second
       },
@@ -30,6 +30,7 @@
         this.video = document.getElementById("my-video");
         this.c1 = document.getElementById("my-canvas");
         this.ctx1 = this.c1.getContext("2d");
+        this.ctx1.willReadFrequently = true;
 
         this.video.addEventListener(
           "play",
@@ -56,56 +57,135 @@
         const frame = this.ctx1.getImageData(0, 0, this.width, this.height);
         const resultString = process_img_data(frame, 4);
         // Displaying the returned string in the text box
-        document.getElementById("resultText").value = resultString;
-        
+        document.getElementById("result").innerText = resultString;
 
-        return;
       },
     };
 
-    // Function to handle file selection and read the file
-    function handleFileSelection(event) {
-      const file = event.target.files[0];
-      if (!file) {
-        return; // No file selected
-      }
+    var videoElement = document.querySelector('video');
+    //var audioSelect = document.querySelector('select#audioSource');
+    var videoSelect = document.querySelector('select#videoSource');
 
-      const reader = new FileReader();
-      // set hook to execute after reading the file
-      reader.addEventListener("load", (event) => {
-        const bytes = new Uint8Array(event.target.result);
-        // Passing image bytes to the processing function
-        const resultString = process_img(bytes, 4);
-        // Displaying the returned string in the text box
-        document.getElementById("resultText").value = resultString;
-      });
+    //audioSelect.onchange = getStream;
+    videoSelect.onchange = getStream;
 
-      // start reading file
-      reader.readAsArrayBuffer(file);
+    getStream().then(getDevices).then(gotDevices);
+
+    function getDevices() {
+      // AFAICT in Safari this only gets default devices until gUM is called :/
+      return navigator.mediaDevices.enumerateDevices();
     }
 
-    // let filePicker = document.getElementById("filePicker")
-    // filePicker.addEventListener("change", (event) => {console.log("reached here!! hey!"); handleFileSelection(event)})
+    function gotDevices(deviceInfos) {
+      window.deviceInfos = deviceInfos; // make available to console
+      console.log('Available input and output devices:', deviceInfos);
+      for (const deviceInfo of deviceInfos) {
+        const option = document.createElement('option');
+        option.value = deviceInfo.deviceId;
+        if (deviceInfo.kind === 'audioinput') {
+          option.text = deviceInfo.label || `Microphone ${audioSelect.length + 1}`;
+          //    audioSelect.appendChild(option);
+        } else if (deviceInfo.kind === 'videoinput') {
+          option.text = deviceInfo.label || `Camera ${videoSelect.length + 1}`;
+          videoSelect.appendChild(option);
+        }
+      }
+    }
+
+    function getStream() {
+      if (window.stream) {
+        window.stream.getTracks().forEach(track => {
+          track.stop();
+        });
+      }
+      //const audioSource = audioSelect.value;
+      const videoSource = videoSelect.value;
+      const constraints = {
+        audio: false,
+        //audio: {deviceId: audioSource ? {exact: audioSource} : undefined},
+        video: {deviceId: videoSource ? {exact: videoSource} : undefined, width: 1280, height: 720}
+      };
+      return navigator.mediaDevices.getUserMedia(constraints).
+        then(gotStream).catch(handleError);
+    }
+
+    function gotStream(stream) {
+      window.stream = stream; // make stream available to console
+      // audioSelect.selectedIndex = [...audioSelect.options].
+      //   findIndex(option => option.text === stream.getAudioTracks()[0].label);
+      videoSelect.selectedIndex = [...videoSelect.options].
+        findIndex(option => option.text === stream.getVideoTracks()[0].label);
+      videoElement.srcObject = stream;
+    }
+
+    function handleError(error) {
+      console.error('Error: ', error);
+    }
 
     processor.doLoad()
   </script>
 </head>
 
 <body>
-  <h2>Image Processor</h2>
-  <video id="my-video" controls width="480" height="270" crossorigin="anonymous">
-    <source src="https://jplayer.org/video/webm/Big_Buck_Bunny_Trailer.webm" type="video/webm" />
-    <source src="https://jplayer.org/video/m4v/Big_Buck_Bunny_Trailer.m4v" type="video/mp4" />
-  </video>
+  <p>Gaze within the</p>
+  <h2>🪞 Emoji Mirror 🪞</h2>
+  <!-- <div class="select"> -->
+  <!-- <label for="audioSource">Audio source: </label><select id="audioSource"></select> -->
+  <!-- </div> -->
 
-  <canvas id="my-canvas" width="480" height="270"></canvas>
+  <div class="select">
+    <label for="videoSource">Video:</label><select id="videoSource"></select>
+  </div>
 
-  <textarea id="resultText" rows="4" cols="50" placeholder="Processed image result will appear here..."></textarea>
+  <div class="container">
+    <video id="my-video" autoplay muted playsinline width="640" height="360">
+    </video>
+
+    <canvas id="my-canvas" width="640" height="360"></canvas>
+    <div id="result"></div>
+  </div>
 
   <style>
-    #resultText {
-      font-family: "Noto Color Emoji", sans-serif;
+    :root {
+      --size: calc(100vw / 420);
     }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background: #000;
+      color: #fff;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    .container {
+      position: relative;
+    }
+
+    #my-video {
+      position: fixed;
+      right: 0;
+      top: 0;
+      width: 180px;
+      aspect-ratio: 16/9;
+    }
+
+    #result {
+      font-family: "Noto Color Emoji", sans-serif;
+      font-size: var(--size);
+      line-height: 1.2;
+      background: #000;
+      white-space: pre-wrap;
+      text-align: left;
+      margin: 0 auto;
+    }
+
+    #my-canvas {}
   </style>
 </body>
 
