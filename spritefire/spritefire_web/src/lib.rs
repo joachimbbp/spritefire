@@ -1,11 +1,10 @@
-use db::EmojiDatabase;
-use image::{load_from_memory, load_from_memory_with_format, ImageFormat, Rgba, RgbaImage};
 use std::sync::OnceLock;
+
+use image::{load_from_memory_with_format, ImageFormat, RgbaImage};
 use wasm_bindgen::prelude::*;
 use web_sys::ImageData;
 
-pub mod db;
-pub mod emoji;
+use spritefire::db::EmojiDatabase;
 
 pub fn set_panic_hook() {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -14,7 +13,7 @@ pub fn set_panic_hook() {
     //
     // For more details see
     // https://github.com/rustwasm/console_error_panic_hook#readme
-    // #[cfg(feature = "console_error_panic_hook")]
+    #[cfg(feature = "console_error_panic_hook")]
     console_error_panic_hook::set_once();
 }
 
