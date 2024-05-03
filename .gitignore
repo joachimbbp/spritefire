@@ -32,3 +32,8 @@ output/
 
 #After Effects
 resolution_switcher_AME/
+
+#RUST
+*target/
+db.dat
+*pkg/
