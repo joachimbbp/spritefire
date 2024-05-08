@@ -1,5 +1,7 @@
 use spritefire::db::debug_emojis_as_css;
 use spritefire::db::EmojiDatabase;
+use spritefire::desktop;
+use spritefire::desktop::draw;
 use std::env;
 use std::fs;
 
@@ -23,5 +25,12 @@ fn main() {
         // this makes it easy to view in vscode which shows color preview for
         // the hex code
         debug_emojis_as_css(args[2].clone().into())
+    } else if args[1] == "test_branch" {
+        //This is a temp branch for testing pieces of the code
+        let bytes = fs::read(args[2].clone()).unwrap();
+        println!("\nBytes read\n");
+        let emoji_db = EmojiDatabase::from_bytes(&bytes);
+        println!("db created\n");
+        desktop::draw(emoji_db);
     }
 }
