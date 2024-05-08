@@ -52,7 +52,16 @@ impl EmojiDatabase {
             FixedU8::from_num(rgb[2]),
         ];
 
+        //TEMP DEBUG
+        println!("\ndense emoji Point: {:#?}\n", point);
+
+        // convert point to a
+
         let nearest = self.kdtree.nearest_n::<SquaredEuclidean>(&point, 3);
+
+        //TEMP DEBUG
+        println!("\nnearest {:#?}", nearest);
+
         let (_, symbol) = nearest
             .iter()
             .map(|item| {
@@ -70,6 +79,8 @@ impl EmojiDatabase {
             FixedU8::from_num(rgb[1]),
             FixedU8::from_num(rgb[2]),
         ];
+        //TEMP DEBUG
+        println!("emoji Point: {:#?}", point);
 
         let index: usize = self.kdtree.nearest_one::<SquaredEuclidean>(&point).item as usize;
         &self.symbols[index].symbol
@@ -84,6 +95,9 @@ impl EmojiDatabase {
         let (width, height) = img.dimensions();
         let num_squares_x = width / pool_size;
         let num_squares_y = height / pool_size;
+
+        //TEMP DEBUG
+        println!("num squares:\nX:{}\nY:{}", num_squares_x, num_squares_y);
 
         let mut emojis: String = String::new();
 
@@ -124,9 +138,13 @@ impl EmojiDatabase {
             }
             emojis.push('\n');
         }
-
+        println!("{:#?}", emojis);
         emojis
     }
+}
+
+fn squared_euclidean_custom(a: (u8, u8, u8), b: (u8, u8, u8)) -> (u8, u8, u8) {
+    todo!()
 }
 
 pub fn read_emojis_from_directory(dir_path: PathBuf) -> Vec<Emoji> {
