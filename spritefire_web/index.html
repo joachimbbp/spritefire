@@ -58,6 +58,7 @@
       var videoElement = document.querySelector('video');
       var videoSelect = document.querySelector('select#videoSource');
       videoSelect.onchange = getStream;
+      videoSelect.addEventListener("click", getStream)
       getStream().then(getDevices).then(gotDevices);
 
       function getDevices() {
@@ -114,6 +115,30 @@
       window.getSelection().removeAllRanges();
     }
 
+    // Function to handle file selection and read the file
+    function handleFileSelection(event) {
+      const file = event.target.files[0];
+      if (!file) {
+        return; // No file selected
+      }
+
+      // stop video stream if it's playing
+      document.querySelector('video').srcObject = null
+
+      const reader = new FileReader();
+
+      // set hook to execute after reading the file
+      reader.addEventListener("load", (event) => {
+        const bytes = new Uint8Array(event.target.result);
+        const scale = document.getElementById("downscale-slider").value;
+        const resultString = process_img(bytes, scale);
+        document.getElementById("result").innerText = resultString;
+      });
+
+      reader.readAsArrayBuffer(file);
+    }
+
+    document.getElementById("filePicker").addEventListener("change", (event) => { handleFileSelection(event) })
     document.getElementById("copy-btn").addEventListener("click", copyToClipboard, false);
     setVideoElementFromDevice()
     videoStreamProcessor.doLoad()
@@ -126,6 +151,9 @@
 
   <div class="select">
     <label for="videoSource">Video:</label><select id="videoSource"></select>
+    <br>
+    <label for="filePicker">Upload Image:</label>
+    <input id="filePicker" type="file" accept=".png">
     <br>
     <label for="downscale-slider">Downscale:</label>
     <input type="range" id="downscale-slider" min="1" max="14" value="4">
