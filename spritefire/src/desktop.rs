@@ -8,7 +8,7 @@ pub fn draw(db: EmojiDatabase) {
         "/Users/joachimpfefferkorn/repos/spritefire/assets/test_footage/scuba/scuba102.png",
     )
     .unwrap();
-    let pool_size = 120;
+    let pool_size = 16;
     println!(
         "Canvas:\n{}",
         EmojiDatabase::emojify_image_to_string(&db, img, pool_size)

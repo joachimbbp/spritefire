@@ -7,7 +7,7 @@ use std::{
 use crate::emoji::Emoji;
 use fixed::{types::extra::U0, FixedU8};
 use image::{DynamicImage, GenericImageView, Rgb};
-use kiddo::fixed::{distance::SquaredEuclidean, kdtree::KdTree};
+use kiddo::fixed::{distance::Manhattan, distance::SquaredEuclidean, kdtree::KdTree};
 use postcard::{from_bytes, to_allocvec};
 use serde::{Deserialize, Serialize};
 
@@ -57,7 +57,7 @@ impl EmojiDatabase {
 
         // convert point to a
 
-        let nearest = self.kdtree.nearest_n::<SquaredEuclidean>(&point, 3);
+        let nearest = self.kdtree.nearest_n::<Manhattan>(&point, 3);
 
         //TEMP DEBUG
         println!("\nnearest {:#?}", nearest);
