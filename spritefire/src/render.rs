@@ -16,11 +16,11 @@ pub async fn run() {
         .await
         .unwrap();
 
-    let texture_size = 256u32;
+    let texture_size = (3840, 2160);
     let texture_desc = wgpu::TextureDescriptor {
         size: wgpu::Extent3d {
-            width: texture_size,
-            height: texture_size,
+            width: texture_size.0,
+            height: texture_size.1,
             depth_or_array_layers: 1,
         },
         mip_level_count: 1,
@@ -37,7 +37,7 @@ pub async fn run() {
     // we need to store this for later
     let u32_size = std::mem::size_of::<u32>() as u32;
 
-    let output_buffer_size = (u32_size * texture_size * texture_size) as wgpu::BufferAddress;
+    let output_buffer_size = (u32_size * texture_size.0 * texture_size.1) as wgpu::BufferAddress;
     let output_buffer_desc = wgpu::BufferDescriptor {
         size: output_buffer_size,
         usage: wgpu::BufferUsages::COPY_DST
@@ -169,8 +169,8 @@ pub async fn run() {
             buffer: &output_buffer,
             layout: wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: Some(u32_size * texture_size),
-                rows_per_image: Some(texture_size),
+                bytes_per_row: Some(u32_size * texture_size.0),
+                rows_per_image: Some(texture_size.0),
             },
         },
         texture_desc.size,
@@ -196,7 +196,7 @@ pub async fn run() {
 
         use image::{ImageBuffer, Rgba};
         let buffer =
-            ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
+            ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size.0, texture_size.1, data).unwrap();
         buffer.save("image.png").unwrap();
     }
     output_buffer.unmap();
