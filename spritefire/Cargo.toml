@@ -18,3 +18,4 @@ wgpu = { version = "0.19.3", features = ["spirv"] }     #what is spirv?
 tokio = { version = "1.37.0", features = ["full"] }
 shaderc = "0.8"
 futures-intrusive = "0.4"                               # what is futures-intrusive?
+bytemuck = { version = "1.15", features = ["derive"] }

@@ -1,53 +1,74 @@
 use crate::db::EmojiDatabase;
-use crate::render::run;
-use image::DynamicImage;
+use crate::render::render;
+use image::{DynamicImage, GenericImageView, Rgb};
+use std::path::PathBuf;
 use tokio::runtime::Runtime;
 
-pub fn draw(db: EmojiDatabase) {
-    println!("database:\n{:#?}", db);
+pub fn draw_frame(db: EmojiDatabase) {
     let img = image::open(
         "/Users/joachimpfefferkorn/repos/spritefire/assets/test_footage/scuba/scuba102.png",
     )
     .unwrap();
+    let sprite_root = "/Users/joachimpfefferkorn/repos/spritefire/assets/sprites_512/";
     let pool_size = 16;
-    println!(
-        "Canvas:\n{}",
-        EmojiDatabase::emojify_image_to_string(&db, img, pool_size)
-    );
-    let rt = Runtime::new().unwrap();
-    let handle = rt.handle();
-    handle.block_on(run());
+    let canvas = make_canvas(&db, img, pool_size, &sprite_root);
+    //println!("Canvas:\n{}", canvas); //Debug purposes only
+    /*
+        let rt = Runtime::new().unwrap();
+        let handle = rt.handle();
+        handle.block_on(render());
+    */
 }
 
-fn canvas(db: EmojiDatabase, img: DynamicImage) -> String {
-    todo!();
-    //or maybe just use emojify_image_to_string>
-}
+fn make_canvas(db: &EmojiDatabase, img: DynamicImage, pool_size: u32, sprite_root: &str) -> String {
+    //Very similar to emojify_image_to_string in db.rs
+    let (width, height) = img.dimensions();
+    let num_squares_x = width / pool_size;
+    let num_squares_y = height / pool_size;
 
-//fn draw
-//  Takes in image and db
-//
+    let mut canvas: String = String::new();
 
-// fn emojify_to_canvas
-//  basically db::emojify_image_to_string but emojifies to canvas
+    for y in 0..=num_squares_y {
+        for x in 0..=num_squares_x {
+            let mut sum_r = 0;
+            let mut sum_g = 0;
+            let mut sum_b = 0;
+            let mut pix_count = 0;
 
-/*
-impl<A: Axis, const K: usize> DistanceMetric<A, K> for SquaredEuclidean {
-    #[inline]
-    fn dist(a: &[A; K], b: &[A; K]) -> A {
-        a.iter()
-            .zip(b.iter())
-            .map(|(&a_val, &b_val)| {
-                let diff: A = a_val.dist(b_val);
-                diff * diff
-            })
-            .fold(A::ZERO, |a, b| a.saturating_add(b))
+            for j in 0..pool_size {
+                for i in 0..pool_size {
+                    let px = x * pool_size + i;
+                    let py = y * pool_size + j;
+                    if px < width && py < height {
+                        let pixel = img.get_pixel(px, py);
+                        if pixel[3] > 0 {
+                            sum_r += pixel[0] as u64;
+                            sum_g += pixel[1] as u64;
+                            sum_b += pixel[2] as u64;
+                            pix_count += 1;
+                        }
+                    }
+                }
+            }
+
+            // do no find emoji for transparent parts of image
+            if pix_count == 0 {
+                canvas.push_str(sprite_root);
+                canvas.push_str("blanktile"); //might be an issue here string '' vs string literal ""
+                canvas.push_str(",");
+            } else {
+                let avg_r = (sum_r / pix_count) as u8;
+                let avg_g = (sum_g / pix_count) as u8;
+                let avg_b = (sum_b / pix_count) as u8;
+
+                let emoji = db.lookup_closest_dense_emoji(Rgb([avg_r, avg_g, avg_b]));
+                canvas.push_str(sprite_root);
+                canvas.push_str(&emoji);
+                canvas.push_str(",");
+            }
+        }
+        canvas.push('\n');
     }
-
-    #[inline]
-    fn dist1(a: A, b: A) -> A {
-        let diff: A = a.dist(b);
-        diff * diff
-    }
+    println!("{:#?}", canvas);
+    canvas
 }
-*/

@@ -96,9 +96,6 @@ impl EmojiDatabase {
         let num_squares_x = width / pool_size;
         let num_squares_y = height / pool_size;
 
-        //TEMP DEBUG
-        println!("num squares:\nX:{}\nY:{}", num_squares_x, num_squares_y);
-
         let mut emojis: String = String::new();
 
         for y in 0..=num_squares_y {
@@ -141,10 +138,6 @@ impl EmojiDatabase {
         println!("{:#?}", emojis);
         emojis
     }
-}
-
-fn squared_euclidean_custom(a: (u8, u8, u8), b: (u8, u8, u8)) -> (u8, u8, u8) {
-    todo!()
 }
 
 pub fn read_emojis_from_directory(dir_path: PathBuf) -> Vec<Emoji> {

@@ -1,6 +1,6 @@
 use spritefire::db::debug_emojis_as_css;
 use spritefire::db::EmojiDatabase;
-use spritefire::desktop::draw;
+use spritefire::desktop::draw_frame;
 use std::env;
 use std::fs;
 use std::path;
@@ -35,6 +35,6 @@ fn main() {
         println!("\nBytes read\n");
         let emoji_db = EmojiDatabase::from_bytes(&bytes);
         println!("db created\n");
-        draw(emoji_db);
+        draw_frame(emoji_db);
     }
 }

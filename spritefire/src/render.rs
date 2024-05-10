@@ -1,203 +1,375 @@
-pub async fn run() {
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::all(),
-        ..Default::default()
-    });
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::default(),
-            compatible_surface: None,
-            force_fallback_adapter: false,
-        })
-        .await
-        .unwrap();
-    let (device, queue) = adapter
-        .request_device(&Default::default(), None)
-        .await
-        .unwrap();
-
-    let texture_size = (3840, 2160);
-    let texture_desc = wgpu::TextureDescriptor {
-        size: wgpu::Extent3d {
-            width: texture_size.0,
-            height: texture_size.1,
-            depth_or_array_layers: 1,
-        },
-        mip_level_count: 1,
-        sample_count: 1,
-        dimension: wgpu::TextureDimension::D2,
-        format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
-        label: None,
-        view_formats: &[],
-    };
-    let texture = device.create_texture(&texture_desc);
-    let texture_view = texture.create_view(&Default::default());
-
-    // we need to store this for later
-    let u32_size = std::mem::size_of::<u32>() as u32;
-
-    let output_buffer_size = (u32_size * texture_size.0 * texture_size.1) as wgpu::BufferAddress;
-    let output_buffer_desc = wgpu::BufferDescriptor {
-        size: output_buffer_size,
-        usage: wgpu::BufferUsages::COPY_DST
-            // this tells wpgu that we want to read this buffer from the cpu
-            | wgpu::BufferUsages::MAP_READ,
-        label: None,
-        mapped_at_creation: false,
-    };
-    let output_buffer = device.create_buffer(&output_buffer_desc);
-
-    let vs_src = include_str!("shader.vert");
-    let fs_src = include_str!("shader.frag");
-    let compiler = shaderc::Compiler::new().unwrap();
-    let vs_spirv = compiler
-        .compile_into_spirv(
-            vs_src,
-            shaderc::ShaderKind::Vertex,
-            "shader.vert",
-            "main",
-            None,
-        )
-        .unwrap();
-    let fs_spirv = compiler
-        .compile_into_spirv(
-            fs_src,
-            shaderc::ShaderKind::Fragment,
-            "shader.frag",
-            "main",
-            None,
-        )
-        .unwrap();
-    let vs_data = wgpu::util::make_spirv(vs_spirv.as_binary_u8());
-    let fs_data = wgpu::util::make_spirv(fs_spirv.as_binary_u8());
-    let vs_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("Vertex Shader"),
-        source: vs_data,
-    });
-    let fs_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("Fragment Shader"),
-        source: fs_data,
-    });
-
-    let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("Render Pipeline Layout"),
-        bind_group_layouts: &[],
-        push_constant_ranges: &[],
-    });
-
-    let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        label: Some("Render Pipeline"),
-        layout: Some(&render_pipeline_layout),
-        vertex: wgpu::VertexState {
-            module: &vs_module,
-            entry_point: "main",
-            buffers: &[],
-        },
-        fragment: Some(wgpu::FragmentState {
-            module: &fs_module,
-            entry_point: "main",
-            targets: &[Some(wgpu::ColorTargetState {
-                format: texture_desc.format,
-                blend: Some(wgpu::BlendState {
-                    alpha: wgpu::BlendComponent::REPLACE,
-                    color: wgpu::BlendComponent::REPLACE,
-                }),
-                write_mask: wgpu::ColorWrites::ALL,
-            })],
-        }),
-        primitive: wgpu::PrimitiveState {
-            topology: wgpu::PrimitiveTopology::TriangleList,
-            strip_index_format: None,
-            front_face: wgpu::FrontFace::Ccw,
-            cull_mode: Some(wgpu::Face::Back),
-            // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
-            polygon_mode: wgpu::PolygonMode::Fill,
-            // Requires Features::DEPTH_CLIP_CONTROL
-            unclipped_depth: false,
-            // Requires Features::CONSERVATIVE_RASTERIZATION
-            conservative: false,
-        },
-        depth_stencil: None,
-        multisample: wgpu::MultisampleState {
-            count: 1,
-            mask: !0,
-            alpha_to_coverage_enabled: false,
-        },
-        // If the pipeline will be used with a multiview render pass, this
-        // indicates how many array layers the attachments will have.
-        multiview: None,
-    });
-
-    let mut encoder =
-        device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-
-    {
-        let render_pass_desc = wgpu::RenderPassDescriptor {
+use image::{GenericImageView, ImageBuffer, Rgba};
+use std::{iter, ops::Range};
+use wgpu::{util::DeviceExt, Queue, SurfaceTexture, Texture, TextureView};
+pub fn render(
+    mut encoder: wgpu::CommandEncoder,
+    view: &TextureView,
+    clear_color: &wgpu::Color,
+    render_pipeline: &wgpu::RenderPipeline,
+    images: Vec<Image>,
+    queue: &Queue,
+    output: SurfaceTexture,
+) {
+    let mut render_pass: wgpu::RenderPass<'_> =
+        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: &texture_view,
+                view: &view,
                 resolve_target: None,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(wgpu::Color {
-                        r: 0.1,
-                        g: 0.2,
-                        b: 0.3,
-                        a: 1.0,
-                    }),
+                    load: wgpu::LoadOp::Clear(*clear_color),
                     store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
             occlusion_query_set: None,
             timestamp_writes: None,
-        };
-        let mut render_pass = encoder.begin_render_pass(&render_pass_desc);
-
-        render_pass.set_pipeline(&render_pipeline);
-        render_pass.draw(0..3, 0..1);
-    }
-
-    encoder.copy_texture_to_buffer(
-        wgpu::ImageCopyTexture {
-            aspect: wgpu::TextureAspect::All,
-            texture: &texture,
-            mip_level: 0,
-            origin: wgpu::Origin3d::ZERO,
-        },
-        wgpu::ImageCopyBuffer {
-            buffer: &output_buffer,
-            layout: wgpu::ImageDataLayout {
-                offset: 0,
-                bytes_per_row: Some(u32_size * texture_size.0),
-                rows_per_image: Some(texture_size.0),
-            },
-        },
-        texture_desc.size,
-    );
-
-    queue.submit(Some(encoder.finish()));
-
-    // We need to scope the mapping variables so that we can
-    // unmap the buffer
-    {
-        let buffer_slice = output_buffer.slice(..);
-
-        // NOTE: We have to create the mapping THEN device.poll() before await
-        // the future. Otherwise the application will freeze.
-        let (tx, rx) = futures_intrusive::channel::shared::oneshot_channel();
-        buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
-            tx.send(result).unwrap();
         });
-        device.poll(wgpu::Maintain::Wait);
-        rx.receive().await.unwrap().unwrap();
+    render_pass.set_pipeline(&render_pipeline);
 
-        let data = buffer_slice.get_mapped_range();
+    for image in &images {
+        let (bind_group, vertex_buffer, index_buffer, indices) = setup_image(image);
 
-        use image::{ImageBuffer, Rgba};
-        let buffer =
-            ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size.0, texture_size.1, data).unwrap();
-        buffer.save("image.png").unwrap();
+        render_pass.set_bind_group(0, bind_group, &[]);
+        render_pass.set_vertex_buffer(0, vertex_buffer.slice(..));
+        render_pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+        render_pass.draw_indexed(indices, 0, 0..1);
     }
-    output_buffer.unmap();
+    drop(render_pass);
+
+    queue.submit(iter::once(encoder.finish()));
+
+    output.present();
+}
+
+fn setup_image(image: &Image) -> (&wgpu::BindGroup, &wgpu::Buffer, &wgpu::Buffer, Range<u32>) {
+    (
+        &image.diffuse_bind_group,
+        &image.vertex_buffer,
+        &image.index_buffer,
+        0..image.num_indices,
+    )
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct Vertex {
+    position: [f32; 3],
+    tex_coords: [f32; 2], // NEW!
+}
+
+impl Vertex {
+    pub fn desc() -> wgpu::VertexBufferLayout<'static> {
+        use std::mem;
+        wgpu::VertexBufferLayout {
+            array_stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            step_mode: wgpu::VertexStepMode::Vertex,
+            attributes: &[
+                wgpu::VertexAttribute {
+                    offset: 0,
+                    shader_location: 0,
+                    format: wgpu::VertexFormat::Float32x3,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    shader_location: 1,
+                    format: wgpu::VertexFormat::Float32x2, // NEW!
+                },
+            ],
+        }
+    }
+}
+pub struct Transform {
+    pub scale: f32,
+    pub translation: [f32; 3],
+    pub rotation: [f32; 3],
+}
+#[derive(Copy, Clone, Debug)]
+struct Rotation2D {
+    //This is probably not the best way to do it
+    //I am guessing if you do everything as an array there is a math library that will help you
+    tl: f32, //top left
+    bl: f32, //bottom left
+    tr: f32, //top right
+    br: f32, //bottom right
+}
+
+impl Rotation2D {
+    fn theta(theta: f32) -> Rotation2D {
+        Rotation2D {
+            tl: theta.cos(),
+            bl: theta.sin(),
+            tr: -theta.sin(),
+            br: theta.cos(),
+        }
+    }
+}
+#[derive(Copy, Clone, Debug)]
+struct Corners {
+    top_left: (f32, f32),
+    bottom_left: (f32, f32),
+    bottom_right: (f32, f32),
+    top_right: (f32, f32),
+}
+#[derive(Copy, Clone, Debug)]
+struct ImagePlacement {
+    corners: Corners,
+    vertices: [Vertex; 4],
+    indices: [u16; 6],
+}
+
+impl ImagePlacement {
+    fn new(image_resolution: (u32, u32)) -> ImagePlacement {
+        let generated_corners = ImagePlacement::get_corners(image_resolution);
+        ImagePlacement {
+            corners: generated_corners,
+            vertices: ImagePlacement::corners_to_verts(generated_corners),
+            indices: [0, 1, 3, 1, 2, 3],
+        }
+    }
+    fn place(
+        placement: ImagePlacement,
+        scale_factor: f32,
+        pos: [f32; 3],
+        rotation: Rotation2D,
+    ) -> ImagePlacement {
+        let placement = ImagePlacement::scale(&placement, scale_factor);
+        let placement = ImagePlacement::translate(&placement, &pos);
+        let placement = ImagePlacement::rotate(&placement, rotation);
+        placement
+    }
+    fn corners_to_verts(corners: Corners) -> [Vertex; 4] {
+        [
+            Vertex {
+                position: [corners.top_left.0, corners.top_left.1, 0.0],
+                tex_coords: [0.0, 0.0],
+            }, // 0
+            Vertex {
+                position: [corners.bottom_left.0, corners.bottom_left.1, 0.0],
+                tex_coords: [0.0, 1.0],
+            }, // 1
+            Vertex {
+                position: [corners.bottom_right.0, corners.bottom_right.1, 0.0],
+                tex_coords: [1.0, 1.],
+            }, // 2
+            Vertex {
+                position: [corners.top_right.0, corners.top_right.1, 0.0],
+                tex_coords: [1.0, 0.0],
+            }, // 3
+        ]
+    }
+    fn get_corners(image_resolution: (u32, u32)) -> Corners {
+        let mut corners = Corners {
+            top_left: (0.0, 0.0),
+            bottom_left: (0.0, 0.0),
+            bottom_right: (0.0, 0.0),
+            top_right: (0.0, 0.0),
+        };
+        corners.top_left = (
+            image_resolution.0 as f32 * -0.5,
+            image_resolution.1 as f32 * 0.5,
+        );
+        corners.bottom_left = (
+            image_resolution.0 as f32 * -0.5,
+            image_resolution.1 as f32 * -0.5,
+        );
+        corners.bottom_right = (
+            image_resolution.0 as f32 * 0.5,
+            image_resolution.1 as f32 * -0.5,
+        );
+        corners.top_right = (
+            image_resolution.0 as f32 * 0.5,
+            image_resolution.1 as f32 * 0.5,
+        );
+        corners
+    }
+
+    fn scale(input_placement: &ImagePlacement, scale_factor: f32) -> ImagePlacement {
+        let mut scaled: ImagePlacement = *input_placement;
+        scaled.corners.top_left = (
+            scaled.corners.top_left.0 * scale_factor,
+            scaled.corners.top_left.1 * scale_factor,
+        );
+        scaled.corners.bottom_left = (
+            scaled.corners.bottom_left.0 * scale_factor,
+            scaled.corners.bottom_left.1 * scale_factor,
+        );
+        scaled.corners.bottom_right = (
+            scaled.corners.bottom_right.0 * scale_factor,
+            scaled.corners.bottom_right.1 * scale_factor,
+        );
+        scaled.corners.top_right = (
+            scaled.corners.top_right.0 * scale_factor,
+            scaled.corners.top_right.1 * scale_factor,
+        );
+        scaled.vertices = ImagePlacement::corners_to_verts(scaled.corners);
+        scaled
+    }
+
+    fn translate(current_pos: &ImagePlacement, offset: &[f32; 3]) -> ImagePlacement {
+        //every x value is added to the x offset, and every y to the y
+        let mut translated: ImagePlacement = *current_pos;
+        translated.corners.top_left = (
+            translated.corners.top_left.0 + offset[0],
+            translated.corners.top_left.1 + offset[1],
+        );
+        translated.corners.bottom_left = (
+            translated.corners.bottom_left.0 + offset[0],
+            translated.corners.bottom_left.1 + offset[1],
+        );
+        translated.corners.bottom_right = (
+            translated.corners.bottom_right.0 + offset[0],
+            translated.corners.bottom_right.1 + offset[1],
+        );
+        translated.corners.top_right = (
+            translated.corners.top_right.0 + offset[0],
+            translated.corners.top_right.1 + offset[1],
+        );
+        translated.vertices = ImagePlacement::corners_to_verts(translated.corners);
+        translated
+    }
+
+    fn rows_x_cols(x: f32, y: f32, matrix: Rotation2D) -> (f32, f32) {
+        (matrix.tl * x + matrix.tr * y, matrix.bl * x + matrix.br * y)
+    }
+    fn rotate(current_pos: &ImagePlacement, rotation: Rotation2D) -> ImagePlacement {
+        let mut rotated: ImagePlacement = *current_pos;
+        rotated.corners.top_left = ImagePlacement::rows_x_cols(
+            rotated.corners.top_left.0,
+            rotated.corners.top_left.1,
+            rotation,
+        );
+
+        rotated.corners.bottom_left = ImagePlacement::rows_x_cols(
+            rotated.corners.bottom_left.0,
+            rotated.corners.bottom_left.1,
+            rotation,
+        );
+        rotated.corners.top_right = ImagePlacement::rows_x_cols(
+            rotated.corners.top_right.0,
+            rotated.corners.top_right.1,
+            rotation,
+        );
+        rotated.corners.bottom_right = ImagePlacement::rows_x_cols(
+            rotated.corners.bottom_right.0,
+            rotated.corners.bottom_right.1,
+            rotation,
+        );
+        rotated.vertices = ImagePlacement::corners_to_verts(rotated.corners);
+        rotated
+    }
+    //THEN YOU CAN HAVE HOOKS INTO TRANSLATION, ROTATION AND SCALE!
+    //Way down the line you can do sheer, skew, etc
+}
+#[derive(Debug)]
+pub struct Image {
+    pub diffuse_bind_group: wgpu::BindGroup,
+    pub vertex_buffer: wgpu::Buffer,
+    pub index_buffer: wgpu::Buffer,
+    pub num_indices: u32,
+}
+
+impl Image {
+    pub fn load_image(
+        path: &str,
+        transform: Transform,
+        device: &wgpu::Device,
+        queue: &Queue,
+        texture_bind_group_layout: &wgpu::BindGroupLayout,
+        diffuse_sampler: &wgpu::Sampler,
+    ) -> Image {
+        let (diffuse_texture, diffuse_rgba) = Self::ingest_image(path, device);
+        //if you included normals etc you'd want a material struct
+
+        let new_image = ImagePlacement::new((diffuse_texture.width(), diffuse_texture.height()));
+        let placement = ImagePlacement::place(
+            new_image,
+            transform.scale,
+            transform.translation,
+            Rotation2D::theta(transform.rotation[2]),
+        );
+
+        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Vertex Buffer2"),
+            contents: bytemuck::cast_slice(&placement.vertices),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Index Buffer2"),
+            contents: bytemuck::cast_slice(&placement.indices),
+            usage: wgpu::BufferUsages::INDEX,
+        });
+        let num_indices = placement.indices.len() as u32; //should always be sixe for a square
+
+        queue.write_texture(
+            // Tells wgpu where to copy the pixel data
+            wgpu::ImageCopyTexture {
+                texture: &diffuse_texture,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+                aspect: wgpu::TextureAspect::All,
+            },
+            // The actual pixel data
+            &diffuse_rgba,
+            // The layout of the texture
+            wgpu::ImageDataLayout {
+                offset: 0,
+                bytes_per_row: Some(4 * diffuse_texture.width()), //Is calling this function each time computationally expensive?
+                rows_per_image: Some(diffuse_texture.height()),
+            },
+            diffuse_texture.size(),
+        );
+        let diffuse_texture_view =
+            diffuse_texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &texture_bind_group_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&diffuse_texture_view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&diffuse_sampler),
+                },
+            ],
+            label: Some("diffuse_bind_group"),
+        });
+
+        //return (diffuse_bind_group, vertex_buffer, index_buffer, num_indices);
+        Image {
+            diffuse_bind_group: diffuse_bind_group,
+            vertex_buffer: vertex_buffer,
+            index_buffer: index_buffer,
+            num_indices: num_indices,
+        }
+    }
+
+    fn ingest_image(
+        //TODO move to image struct
+        image_path: &str,
+        device: &wgpu::Device,
+    ) -> (Texture, ImageBuffer<Rgba<u8>, Vec<u8>>) {
+        let diffuse_bytes = std::fs::read(image_path).unwrap(); //should be equivelent to include_bytes!()
+        let diffuse_image = image::load_from_memory(&diffuse_bytes).unwrap();
+        let diffuse_rgba = diffuse_image.to_rgba8();
+
+        let diffuse_texture = device.create_texture(&wgpu::TextureDescriptor {
+            // All textures are stored as 3D, we represent our 2D texture
+            // by setting depth to 1.
+            size: wgpu::Extent3d {
+                width: diffuse_image.dimensions().0,
+                height: diffuse_image.dimensions().1,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            label: Some("diffuse_texture"),
+            view_formats: &[],
+        });
+        (diffuse_texture, diffuse_rgba)
+    }
 }
