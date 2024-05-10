@@ -3,6 +3,7 @@ use image::{DynamicImage, GenericImageView};
 pub mod db;
 pub mod desktop;
 pub mod emoji;
+pub mod render;
 
 pub fn avg_color_and_density(img: &DynamicImage) -> [u64; 4] {
     // use thumbnail technique to find average color

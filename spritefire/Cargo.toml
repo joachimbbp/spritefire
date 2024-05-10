@@ -14,3 +14,7 @@ kdtree = "0.7.0"
 kiddo = { version = "4.2.0", features = ["serialize"] }
 serde = { version = "1.0.197", features = ["derive"] }
 postcard = { version = "1.0.0", features = ["alloc"] }
+wgpu = { version = "0.19.3", features = ["spirv"] }     #what is spirv?
+tokio = { version = "1.37.0", features = ["full"] }
+shaderc = "0.8"
+futures-intrusive = "0.4"                               # what is futures-intrusive?

@@ -1,6 +1,7 @@
-use image::DynamicImage;
-
 use crate::db::EmojiDatabase;
+use crate::render::run;
+use image::DynamicImage;
+use tokio::runtime::Runtime;
 
 pub fn draw(db: EmojiDatabase) {
     println!("database:\n{:#?}", db);
@@ -13,6 +14,9 @@ pub fn draw(db: EmojiDatabase) {
         "Canvas:\n{}",
         EmojiDatabase::emojify_image_to_string(&db, img, pool_size)
     );
+    let rt = Runtime::new().unwrap();
+    let handle = rt.handle();
+    handle.block_on(run());
 }
 
 fn canvas(db: EmojiDatabase, img: DynamicImage) -> String {
