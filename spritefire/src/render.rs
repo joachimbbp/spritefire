@@ -1,16 +1,35 @@
 use image::{GenericImageView, ImageBuffer, Rgba};
 use std::{iter, ops::Range};
 use wgpu::{util::DeviceExt, Queue, SurfaceTexture, Texture, TextureView};
-pub fn render(
-    mut encoder: wgpu::CommandEncoder,
-    view: &TextureView,
+
+pub async fn render(
+    view: &TextureView, //internalize or 86
     clear_color: &wgpu::Color,
-    render_pipeline: &wgpu::RenderPipeline,
+    render_pipeline: &wgpu::RenderPipeline, //internalize
     images: Vec<Image>,
-    queue: &Queue,
     output: SurfaceTexture,
 ) {
-    let mut render_pass: wgpu::RenderPass<'_> =
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: wgpu::Backends::all(),
+        ..Default::default()
+    });
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::default(),
+            compatible_surface: None,
+            force_fallback_adapter: false,
+        })
+        .await
+        .unwrap();
+    let (device, queue) = adapter
+        .request_device(&Default::default(), None)
+        .await
+        .unwrap();
+
+    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+        label: Some("Render Encoder"),
+    });
+    let mut render_pass_desc: wgpu::RenderPass<'_> =
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -25,17 +44,17 @@ pub fn render(
             occlusion_query_set: None,
             timestamp_writes: None,
         });
-    render_pass.set_pipeline(&render_pipeline);
+    render_pass_desc.set_pipeline(&render_pipeline);
 
     for image in &images {
         let (bind_group, vertex_buffer, index_buffer, indices) = setup_image(image);
 
-        render_pass.set_bind_group(0, bind_group, &[]);
-        render_pass.set_vertex_buffer(0, vertex_buffer.slice(..));
-        render_pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-        render_pass.draw_indexed(indices, 0, 0..1);
+        render_pass_desc.set_bind_group(0, bind_group, &[]);
+        render_pass_desc.set_vertex_buffer(0, vertex_buffer.slice(..));
+        render_pass_desc.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+        render_pass_desc.draw_indexed(indices, 0, 0..1);
     }
-    drop(render_pass);
+    drop(render_pass_desc);
 
     queue.submit(iter::once(encoder.finish()));
 
