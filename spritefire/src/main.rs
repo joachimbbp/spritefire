@@ -3,6 +3,7 @@ use spritefire::db::EmojiDatabase;
 use spritefire::desktop::draw;
 use std::env;
 use std::fs;
+use std::path;
 
 fn main() {
     let args: Vec<_> = env::args().collect();
@@ -26,7 +27,11 @@ fn main() {
         debug_emojis_as_css(args[2].clone().into())
     } else if args[1] == "test_branch" {
         //This is a temp branch for testing pieces of the code
-        let bytes = fs::read(args[2].clone()).unwrap();
+
+        let db_path =
+            path::PathBuf::from("/Users/joachimpfefferkorn/repos/spritefire/assets/db.dat");
+
+        let bytes = fs::read(db_path.clone()).unwrap();
         println!("\nBytes read\n");
         let emoji_db = EmojiDatabase::from_bytes(&bytes);
         println!("db created\n");
