@@ -1,10 +1,8 @@
-use crate::image_utils::{self, Transform};
+use crate::db::EmojiDatabase;
+use crate::image_utils;
 use crate::render::{key_data, run};
-use crate::{db::EmojiDatabase, image_utils::Coordinates};
 use image::{DynamicImage, GenericImageView, Rgb};
-use std::path::PathBuf;
 use tokio::runtime::Runtime;
-use wgpu::{Device, Queue, SurfaceConfiguration};
 
 #[derive(Debug, Clone)]
 pub struct PlacedSprite {
@@ -85,16 +83,8 @@ async fn make_canvas(
                 let transform = image_utils::Transform {
                     //TEMP GARBO
                     scale: 0.0005,
-                    rotation: Coordinates {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                    translation: Coordinates {
-                        x: -0.1,
-                        y: 0.5,
-                        z: 0.0,
-                    },
+                    rotation: [0.0, 0.0, 0.0],
+                    translation: [-0.1, 0.5, 0.0],
                 };
                 canvas.push(PlacedSprite::build(sprite_path, transform));
             }

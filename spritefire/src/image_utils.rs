@@ -2,16 +2,10 @@ use image::{GenericImageView, ImageBuffer, Rgba};
 use wgpu::{util::DeviceExt, Queue, Texture};
 
 #[derive(Debug, Clone, Copy)]
-pub struct Coordinates {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-}
-#[derive(Debug, Clone, Copy)]
 pub struct Transform {
     pub scale: f32,
-    pub rotation: Coordinates,
-    pub translation: Coordinates,
+    pub rotation: [f32; 3],
+    pub translation: [f32; 3],
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -91,7 +85,7 @@ impl ImagePlacement {
     fn place(
         placement: ImagePlacement,
         scale_factor: f32,
-        pos: Coordinates,
+        pos: [f32; 3],
         rotation: Rotation2D,
     ) -> ImagePlacement {
         let placement = ImagePlacement::scale(&placement, scale_factor);
@@ -167,24 +161,24 @@ impl ImagePlacement {
         scaled
     }
 
-    fn translate(current_pos: &ImagePlacement, offset: &Coordinates) -> ImagePlacement {
+    fn translate(current_pos: &ImagePlacement, offset: &[f32; 3]) -> ImagePlacement {
         //every x value is added to the x offset, and every y to the y
         let mut translated: ImagePlacement = *current_pos;
         translated.corners.top_left = (
-            translated.corners.top_left.0 + offset.x,
-            translated.corners.top_left.1 + offset.y,
+            translated.corners.top_left.0 + offset[0],
+            translated.corners.top_left.1 + offset[1],
         );
         translated.corners.bottom_left = (
-            translated.corners.bottom_left.0 + offset.x,
-            translated.corners.bottom_left.1 + offset.y,
+            translated.corners.bottom_left.0 + offset[0],
+            translated.corners.bottom_left.1 + offset[1],
         );
         translated.corners.bottom_right = (
-            translated.corners.bottom_right.0 + offset.x,
-            translated.corners.bottom_right.1 + offset.y,
+            translated.corners.bottom_right.0 + offset[0],
+            translated.corners.bottom_right.1 + offset[1],
         );
         translated.corners.top_right = (
-            translated.corners.top_right.0 + offset.x,
-            translated.corners.top_right.1 + offset.y,
+            translated.corners.top_right.0 + offset[0],
+            translated.corners.top_right.1 + offset[1],
         );
         translated.vertices = ImagePlacement::corners_to_verts(translated.corners);
         translated
@@ -248,7 +242,7 @@ impl Image {
             new_image,
             transform.scale,
             transform.translation,
-            Rotation2D::theta(transform.rotation.z),
+            Rotation2D::theta(transform.rotation[2]),
         );
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
