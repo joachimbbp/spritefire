@@ -6,6 +6,20 @@ use std::path::PathBuf;
 use tokio::runtime::Runtime;
 use wgpu::{Device, Queue, SurfaceConfiguration};
 
+#[derive(Debug, Clone)]
+pub struct PlacedSprite {
+    pub sprite_path: String,
+    pub transform: image_utils::Transform,
+}
+impl PlacedSprite {
+    fn build(sprite_path: String, transform: image_utils::Transform) -> PlacedSprite {
+        PlacedSprite {
+            sprite_path: sprite_path,
+            transform: transform,
+        }
+    }
+}
+
 pub fn draw_frame(db: EmojiDatabase) {
     let img = image::open(
         "/Users/joachimpfefferkorn/repos/spritefire/assets/test_footage/scuba/scuba102.png",
@@ -24,13 +38,13 @@ async fn make_canvas(
     img: DynamicImage,
     pool_size: u32,
     sprite_root: &str,
-) -> Vec<image_utils::Image> {
+) -> Vec<PlacedSprite> {
     let (width, height) = img.dimensions();
     let num_squares_x = width / pool_size;
     let num_squares_y = height / pool_size;
 
     //let mut sprite_path: &str;
-    let mut canvas: Vec<image_utils::Image> = vec![];
+    let mut canvas: Vec<PlacedSprite> = vec![];
     let (device, queue, texture_bind_group_layout, diffuse_sampler) = key_data().await;
 
     for y in 0..=num_squares_y {
@@ -64,34 +78,25 @@ async fn make_canvas(
                 let avg_r = (sum_r / pix_count) as u8;
                 let avg_g = (sum_g / pix_count) as u8;
                 let avg_b = (sum_b / pix_count) as u8;
-
-                //Big hack just for this file
+                //TEMP HACK JUST TO GET WGPU ON IT'S FEET
                 let emoji = db.lookup_closest_dense_emoji(Rgb([avg_r, avg_g, avg_b]));
                 let unicode_emoji = format!("{:x}", emoji.chars().next().unwrap() as u32);
-
-                let sprite_path = format!("{}emoji_u{}.png", sprite_root, unicode_emoji);
+                let sprite_path = format!("{}emoji_u{}.png", sprite_root, unicode_emoji); //terrible parsing gore omg
                 let transform = image_utils::Transform {
                     //TEMP GARBO
-                    scale: 10.0,
+                    scale: 0.0005,
                     rotation: Coordinates {
                         x: 0.0,
                         y: 0.0,
                         z: 0.0,
                     },
                     translation: Coordinates {
-                        x: 0.0,
-                        y: 0.0,
+                        x: -0.1,
+                        y: 0.5,
                         z: 0.0,
                     },
                 };
-                canvas.push(image_utils::Image::load_image(
-                    &sprite_path,
-                    transform,
-                    &device,
-                    &queue,
-                    &texture_bind_group_layout,
-                    &diffuse_sampler,
-                ))
+                canvas.push(PlacedSprite::build(sprite_path, transform));
             }
         }
     }

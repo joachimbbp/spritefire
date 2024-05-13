@@ -1,12 +1,13 @@
 use image::{GenericImageView, ImageBuffer, Rgba};
 use wgpu::{util::DeviceExt, Queue, Texture};
 
+#[derive(Debug, Clone, Copy)]
 pub struct Coordinates {
     pub x: f32,
     pub y: f32,
     pub z: f32,
 }
-
+#[derive(Debug, Clone, Copy)]
 pub struct Transform {
     pub scale: f32,
     pub rotation: Coordinates,

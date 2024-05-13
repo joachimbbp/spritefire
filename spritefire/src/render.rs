@@ -1,3 +1,4 @@
+use crate::desktop::PlacedSprite;
 use crate::image_utils;
 use crate::image_utils::Image;
 use image::flat::NormalForm;
@@ -16,10 +17,9 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
-pub async fn run(canvas: Vec<image_utils::Image>) {
+pub async fn run(canvas: Vec<PlacedSprite>) {
     env_logger::init();
     //BIG TODO: Custom error handling
-
     let (device, queue, texture_bind_group_layout, diffuse_sampler) = key_data().await;
 
     let texture_size = (3840, 2160); //possibly make this square, then crop on the png save?
@@ -138,13 +138,25 @@ pub async fn run(canvas: Vec<image_utils::Image>) {
             occlusion_query_set: None,
             timestamp_writes: None,
         };
-        let mut render_pass = encoder.begin_render_pass(&render_pass_desc);
+        let mut updated_canvas: Vec<image_utils::Image> = vec![];
+        //let mut canvas: Vec<PlacedSprite> = vec![];
+        for sprite in &canvas {
+            updated_canvas.push(Image::load_image(
+                &sprite.sprite_path,
+                sprite.transform,
+                &device,
+                &queue,
+                &texture_bind_group_layout,
+                &diffuse_sampler,
+            ));
+        }
 
+        let mut render_pass: wgpu::RenderPass = encoder.begin_render_pass(&render_pass_desc);
         render_pass.set_pipeline(&render_pipeline);
-        for image in &canvas {
-            let (bind_group, vertex_buffer, index_buffer, indices) = setup_image(image);
+        for sprite in &updated_canvas {
+            let (bind_group, vertex_buffer, index_buffer, indices) = setup_image(sprite);
 
-            render_pass.set_bind_group(0, bind_group, &[]);
+            render_pass.set_bind_group(0, &bind_group, &[]);
             render_pass.set_vertex_buffer(0, vertex_buffer.slice(..));
             render_pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint16);
             render_pass.draw_indexed(indices, 0, 0..1);
