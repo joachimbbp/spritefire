@@ -3,6 +3,9 @@
 <br>Spritefire is a simple graphics program which converts images and videos into mosaics of many tiny images.
 <br>[Youtube Link](https://www.youtube.com/watch?v=3s3X14-8DFA)
 
+# Emoji Mirror: Live, Text-based WASM Webcam mirror
+[Emoji Mirror](https://twitu.github.io/emoji-mirror/) is a live, text based, WASM version of Spritefire by [Ishan](https://github.com/twitu) and [PB](https://github.com/pbt). It works best in chrome.
+
 # Implementation
 By default, sprites are Noto Emojis (found in the asset folder), but you could build your own library of sprites if you wish.
 Before creating a mosaic, Spritefire must generate a database of the average color for each sprite. This average is determined by adding all the red, green, and blue values in each pixel and then dividing each channel by the number of pixels in the sprite.
