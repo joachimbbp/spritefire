@@ -1,9 +1,9 @@
 use crate::db::EmojiDatabase;
-use crate::render::render;
+use crate::render::run;
 use image::{DynamicImage, GenericImageView, Rgb};
 use std::path::PathBuf;
 use tokio::runtime::Runtime;
-use wgpu::{Device, Queue, SurfaceConfiguration}
+use wgpu::{Device, Queue, SurfaceConfiguration};
 
 pub fn draw_frame(db: EmojiDatabase) {
     let img = image::open(
@@ -12,8 +12,8 @@ pub fn draw_frame(db: EmojiDatabase) {
     .unwrap();
     let sprite_root = "/Users/joachimpfefferkorn/repos/spritefire/assets/sprites_512/";
     let pool_size = 16;
-    let canvas = make_canvas(&db, img, pool_size, &sprite_root);
-    draw_canvas(&canvas);
+    let _canvas = make_canvas(&db, img, pool_size, &sprite_root);
+    render_canvas();
 }
 
 fn make_canvas(db: &EmojiDatabase, img: DynamicImage, pool_size: u32, sprite_root: &str) -> String {
@@ -69,7 +69,9 @@ fn make_canvas(db: &EmojiDatabase, img: DynamicImage, pool_size: u32, sprite_roo
     canvas
 }
 
-fn draw_canvas(canvas: &str) {
+fn render_canvas() {
     //Need your encoder, textureView, clear color, render pipeline, vector of Image, queue, SurfaceTexture
-     
+    let rt = Runtime::new().unwrap();
+    let handle = rt.handle();
+    handle.block_on(run());
 }

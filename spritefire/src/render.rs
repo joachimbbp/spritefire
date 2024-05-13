@@ -1,35 +1,225 @@
+use crate::image_utils;
+use crate::image_utils::Image;
 use image::{GenericImageView, ImageBuffer, Rgba};
-use std::{iter, ops::Range};
-use wgpu::{util::DeviceExt, Queue, SurfaceTexture, Texture, TextureView};
+use std::fs;
+use std::iter;
+use std::ops::Range;
+use wgpu::util::DeviceExt;
+use wgpu::{
+    self, Adapter, Device, Extent3d, Queue, SurfaceConfiguration, SurfaceTexture, Texture,
+    TextureView,
+};
+use winit::{
+    event::*,
+    event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
+    window::{Window, WindowBuilder},
+};
 
-pub async fn render(
-    view: &TextureView, //internalize or 86
-    clear_color: &wgpu::Color,
-    render_pipeline: &wgpu::RenderPipeline, //internalize
-    images: Vec<Image>,
-    output: SurfaceTexture,
-) {
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::all(),
+pub async fn run() {
+    env_logger::init();
+    //BIG TODO: Custom error handling
+    let event_loop = EventLoop::new().unwrap();
+    let surface_size: (u32, u32) = (1920, 1920); //Maybe make this just one value as you pretty much always want your surface to be square?
+    let clear_color = wgpu::Color {
+        r: 0.3,
+        g: 0.4,
+        b: 0.8,
+        a: 1.0,
+    };
+    let window = WindowBuilder::new()
+        .with_title("wgpu bootstrap")
+        .with_inner_size(winit::dpi::PhysicalSize::new(
+            surface_size.0,
+            surface_size.1,
+        ))
+        .build(&event_loop)
+        .unwrap();
+
+    let (surface, config, device, queue) = initialize_surface(&window, surface_size).await;
+    surface.configure(&device, &config);
+    let texture_bind_group_layout: wgpu::BindGroupLayout =
+        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        multisampled: false,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    // This should match the filterable field of the
+                    // corresponding Texture entry above.
+                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                    count: None,
+                },
+            ],
+            label: Some("texture_bind_group_layout"),
+        });
+    let diffuse_sampler: wgpu::Sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+        address_mode_u: wgpu::AddressMode::ClampToEdge,
+        address_mode_v: wgpu::AddressMode::ClampToEdge,
+        address_mode_w: wgpu::AddressMode::ClampToEdge,
+        mag_filter: wgpu::FilterMode::Linear,
+        min_filter: wgpu::FilterMode::Nearest,
+        mipmap_filter: wgpu::FilterMode::Nearest,
         ..Default::default()
     });
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::default(),
-            compatible_surface: None,
-            force_fallback_adapter: false,
-        })
-        .await
-        .unwrap();
-    let (device, queue) = adapter
-        .request_device(&Default::default(), None)
-        .await
-        .unwrap();
 
-    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+    //LOADING UP MULTIPLE IMAGES
+    let mut emojis_vec: Vec<image_utils::Image> = vec![];
+    let raw_emojis = fs::read_dir("/Users/joachimpfefferkorn/Desktop/some_emojis").unwrap();
+
+    let mut rotation = 0.0;
+    for emoji in raw_emojis {
+        rotation = rotation + 0.2;
+        let path = emoji.unwrap().path();
+        let path_str = path.to_str().expect("Path is not a string");
+        let transform = image_utils::Transform {
+            scale: 0.0005,
+            rotation: image_utils::Coordinates {
+                x: 0.0,
+                y: 0.0,
+                z: rotation,
+            },
+            translation: image_utils::Coordinates {
+                x: -0.1,
+                y: 0.5,
+                z: 0.0,
+            },
+        };
+        let image = image_utils::Image::load_image(
+            path_str,
+            transform,
+            &device,
+            &queue,
+            &texture_bind_group_layout,
+            &diffuse_sampler,
+        );
+        emojis_vec.push(image);
+    }
+
+    /////////////////////
+    let encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
         label: Some("Render Encoder"),
     });
-    let mut render_pass_desc: wgpu::RenderPass<'_> =
+
+    let output = surface.get_current_texture().unwrap(); //could be a better name
+
+    let view = output //is this the viewscreen?
+        .texture
+        .create_view(&wgpu::TextureViewDescriptor::default());
+
+    let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
+    let texture_bind_group_layout =
+        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        multisampled: false,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    // This should match the filterable field of the
+                    // corresponding Texture entry above.
+                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                    count: None,
+                },
+            ],
+            label: Some("texture_bind_group_layout"),
+        });
+
+    let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("Render Pipeline Layout"),
+        bind_group_layouts: &[&texture_bind_group_layout], // NEW!
+        push_constant_ranges: &[],
+    });
+    let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        //copy pasted from learnWGPU. This is verbose
+        label: Some("Render Pipeline"),
+        layout: Some(&render_pipeline_layout),
+        vertex: wgpu::VertexState {
+            module: &shader,
+            entry_point: "vs_main",
+            buffers: &[image_utils::Vertex::desc()],
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: "fs_main",
+            targets: &[Some(wgpu::ColorTargetState {
+                format: config.format,
+                blend: Some(wgpu::BlendState {
+                    color: wgpu::BlendComponent {
+                        src_factor: wgpu::BlendFactor::SrcAlpha,
+                        dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                        operation: wgpu::BlendOperation::Add,
+                    },
+                    alpha: wgpu::BlendComponent::OVER,
+                }),
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+        }),
+        primitive: wgpu::PrimitiveState {
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: Some(wgpu::Face::Back),
+            // Setting this to anything other than Fill requires Features::POLYGON_MODE_LINE
+            // or Features::POLYGON_MODE_POINT
+            polygon_mode: wgpu::PolygonMode::Fill,
+            // Requires Features::DEPTH_CLIP_CONTROL
+            unclipped_depth: false,
+            // Requires Features::CONSERVATIVE_RASTERIZATION
+            conservative: false,
+        },
+        depth_stencil: None,
+        multisample: wgpu::MultisampleState {
+            count: 1,
+            mask: !0,
+            alpha_to_coverage_enabled: false,
+        },
+        // If the pipeline will be used with a multiview render pass, this
+        // indicates how many array layers the attachments will have.
+        multiview: None,
+    });
+    render(
+        encoder,
+        &view,
+        &clear_color,
+        &render_pipeline,
+        emojis_vec,
+        &queue,
+        output,
+    );
+
+    let _ = event_loop.run(move |event, window| handle_window_event(event, window));
+}
+
+//RENDER FUNCTIONS
+fn render(
+    mut encoder: wgpu::CommandEncoder,
+    view: &TextureView,
+    clear_color: &wgpu::Color,
+    render_pipeline: &wgpu::RenderPipeline,
+
+    images: Vec<Image>,
+
+    queue: &Queue,
+    output: SurfaceTexture,
+) {
+    let mut render_pass: wgpu::RenderPass<'_> =
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -44,17 +234,17 @@ pub async fn render(
             occlusion_query_set: None,
             timestamp_writes: None,
         });
-    render_pass_desc.set_pipeline(&render_pipeline);
+    render_pass.set_pipeline(&render_pipeline);
 
     for image in &images {
         let (bind_group, vertex_buffer, index_buffer, indices) = setup_image(image);
 
-        render_pass_desc.set_bind_group(0, bind_group, &[]);
-        render_pass_desc.set_vertex_buffer(0, vertex_buffer.slice(..));
-        render_pass_desc.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-        render_pass_desc.draw_indexed(indices, 0, 0..1);
+        render_pass.set_bind_group(0, bind_group, &[]);
+        render_pass.set_vertex_buffer(0, vertex_buffer.slice(..));
+        render_pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+        render_pass.draw_indexed(indices, 0, 0..1);
     }
-    drop(render_pass_desc);
+    drop(render_pass);
 
     queue.submit(iter::once(encoder.finish()));
 
@@ -70,325 +260,74 @@ fn setup_image(image: &Image) -> (&wgpu::BindGroup, &wgpu::Buffer, &wgpu::Buffer
     )
 }
 
-#[repr(C)]
-#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct Vertex {
-    position: [f32; 3],
-    tex_coords: [f32; 2], // NEW!
-}
+//WINDOW and SURFACE FUNCTIONS
+async fn initialize_surface<'a>(
+    window: &'a Window,
+    surface_size: (u32, u32),
+) -> (wgpu::Surface<'a>, SurfaceConfiguration, Device, Queue) {
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: wgpu::Backends::all(),
+        ..Default::default()
+    });
 
-impl Vertex {
-    pub fn desc() -> wgpu::VertexBufferLayout<'static> {
-        use std::mem;
-        wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::VertexStepMode::Vertex,
-            attributes: &[
-                wgpu::VertexAttribute {
-                    offset: 0,
-                    shader_location: 0,
-                    format: wgpu::VertexFormat::Float32x3,
-                },
-                wgpu::VertexAttribute {
-                    offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
-                    shader_location: 1,
-                    format: wgpu::VertexFormat::Float32x2, // NEW!
-                },
-            ],
-        }
-    }
-}
-pub struct Transform {
-    pub scale: f32,
-    pub translation: [f32; 3],
-    pub rotation: [f32; 3],
-}
-#[derive(Copy, Clone, Debug)]
-struct Rotation2D {
-    //This is probably not the best way to do it
-    //I am guessing if you do everything as an array there is a math library that will help you
-    tl: f32, //top left
-    bl: f32, //bottom left
-    tr: f32, //top right
-    br: f32, //bottom right
-}
+    let surface = instance.create_surface(window).unwrap(); //Is not borrowing this RAM intensive?
 
-impl Rotation2D {
-    fn theta(theta: f32) -> Rotation2D {
-        Rotation2D {
-            tl: theta.cos(),
-            bl: theta.sin(),
-            tr: -theta.sin(),
-            br: theta.cos(),
-        }
-    }
-}
-#[derive(Copy, Clone, Debug)]
-struct Corners {
-    top_left: (f32, f32),
-    bottom_left: (f32, f32),
-    bottom_right: (f32, f32),
-    top_right: (f32, f32),
-}
-#[derive(Copy, Clone, Debug)]
-struct ImagePlacement {
-    corners: Corners,
-    vertices: [Vertex; 4],
-    indices: [u16; 6],
-}
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::default(),
+            compatible_surface: Some(&surface),
+            force_fallback_adapter: false,
+        })
+        .await
+        .unwrap();
 
-impl ImagePlacement {
-    fn new(image_resolution: (u32, u32)) -> ImagePlacement {
-        let generated_corners = ImagePlacement::get_corners(image_resolution);
-        ImagePlacement {
-            corners: generated_corners,
-            vertices: ImagePlacement::corners_to_verts(generated_corners),
-            indices: [0, 1, 3, 1, 2, 3],
-        }
-    }
-    fn place(
-        placement: ImagePlacement,
-        scale_factor: f32,
-        pos: [f32; 3],
-        rotation: Rotation2D,
-    ) -> ImagePlacement {
-        let placement = ImagePlacement::scale(&placement, scale_factor);
-        let placement = ImagePlacement::translate(&placement, &pos);
-        let placement = ImagePlacement::rotate(&placement, rotation);
-        placement
-    }
-    fn corners_to_verts(corners: Corners) -> [Vertex; 4] {
-        [
-            Vertex {
-                position: [corners.top_left.0, corners.top_left.1, 0.0],
-                tex_coords: [0.0, 0.0],
-            }, // 0
-            Vertex {
-                position: [corners.bottom_left.0, corners.bottom_left.1, 0.0],
-                tex_coords: [0.0, 1.0],
-            }, // 1
-            Vertex {
-                position: [corners.bottom_right.0, corners.bottom_right.1, 0.0],
-                tex_coords: [1.0, 1.],
-            }, // 2
-            Vertex {
-                position: [corners.top_right.0, corners.top_right.1, 0.0],
-                tex_coords: [1.0, 0.0],
-            }, // 3
-        ]
-    }
-    fn get_corners(image_resolution: (u32, u32)) -> Corners {
-        let mut corners = Corners {
-            top_left: (0.0, 0.0),
-            bottom_left: (0.0, 0.0),
-            bottom_right: (0.0, 0.0),
-            top_right: (0.0, 0.0),
-        };
-        corners.top_left = (
-            image_resolution.0 as f32 * -0.5,
-            image_resolution.1 as f32 * 0.5,
-        );
-        corners.bottom_left = (
-            image_resolution.0 as f32 * -0.5,
-            image_resolution.1 as f32 * -0.5,
-        );
-        corners.bottom_right = (
-            image_resolution.0 as f32 * 0.5,
-            image_resolution.1 as f32 * -0.5,
-        );
-        corners.top_right = (
-            image_resolution.0 as f32 * 0.5,
-            image_resolution.1 as f32 * 0.5,
-        );
-        corners
-    }
+    let surface_caps = surface.get_capabilities(&adapter);
 
-    fn scale(input_placement: &ImagePlacement, scale_factor: f32) -> ImagePlacement {
-        let mut scaled: ImagePlacement = *input_placement;
-        scaled.corners.top_left = (
-            scaled.corners.top_left.0 * scale_factor,
-            scaled.corners.top_left.1 * scale_factor,
-        );
-        scaled.corners.bottom_left = (
-            scaled.corners.bottom_left.0 * scale_factor,
-            scaled.corners.bottom_left.1 * scale_factor,
-        );
-        scaled.corners.bottom_right = (
-            scaled.corners.bottom_right.0 * scale_factor,
-            scaled.corners.bottom_right.1 * scale_factor,
-        );
-        scaled.corners.top_right = (
-            scaled.corners.top_right.0 * scale_factor,
-            scaled.corners.top_right.1 * scale_factor,
-        );
-        scaled.vertices = ImagePlacement::corners_to_verts(scaled.corners);
-        scaled
-    }
+    let surface_format = surface_caps //this is so verbose, we can probably make it shorter, look into wgpu::Surface::get_default_config
+        .formats
+        .iter()
+        .copied()
+        .find(|f| f.is_srgb())
+        .unwrap_or(surface_caps.formats[0]);
 
-    fn translate(current_pos: &ImagePlacement, offset: &[f32; 3]) -> ImagePlacement {
-        //every x value is added to the x offset, and every y to the y
-        let mut translated: ImagePlacement = *current_pos;
-        translated.corners.top_left = (
-            translated.corners.top_left.0 + offset[0],
-            translated.corners.top_left.1 + offset[1],
-        );
-        translated.corners.bottom_left = (
-            translated.corners.bottom_left.0 + offset[0],
-            translated.corners.bottom_left.1 + offset[1],
-        );
-        translated.corners.bottom_right = (
-            translated.corners.bottom_right.0 + offset[0],
-            translated.corners.bottom_right.1 + offset[1],
-        );
-        translated.corners.top_right = (
-            translated.corners.top_right.0 + offset[0],
-            translated.corners.top_right.1 + offset[1],
-        );
-        translated.vertices = ImagePlacement::corners_to_verts(translated.corners);
-        translated
-    }
+    let config = wgpu::SurfaceConfiguration {
+        desired_maximum_frame_latency: 2,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        format: surface_format,
+        width: surface_size.0,
+        height: surface_size.1,
+        present_mode: surface_caps.present_modes[0],
+        alpha_mode: surface_caps.alpha_modes[0],
+        view_formats: vec![],
+    };
 
-    fn rows_x_cols(x: f32, y: f32, matrix: Rotation2D) -> (f32, f32) {
-        (matrix.tl * x + matrix.tr * y, matrix.bl * x + matrix.br * y)
-    }
-    fn rotate(current_pos: &ImagePlacement, rotation: Rotation2D) -> ImagePlacement {
-        let mut rotated: ImagePlacement = *current_pos;
-        rotated.corners.top_left = ImagePlacement::rows_x_cols(
-            rotated.corners.top_left.0,
-            rotated.corners.top_left.1,
-            rotation,
-        );
-
-        rotated.corners.bottom_left = ImagePlacement::rows_x_cols(
-            rotated.corners.bottom_left.0,
-            rotated.corners.bottom_left.1,
-            rotation,
-        );
-        rotated.corners.top_right = ImagePlacement::rows_x_cols(
-            rotated.corners.top_right.0,
-            rotated.corners.top_right.1,
-            rotation,
-        );
-        rotated.corners.bottom_right = ImagePlacement::rows_x_cols(
-            rotated.corners.bottom_right.0,
-            rotated.corners.bottom_right.1,
-            rotation,
-        );
-        rotated.vertices = ImagePlacement::corners_to_verts(rotated.corners);
-        rotated
-    }
-    //THEN YOU CAN HAVE HOOKS INTO TRANSLATION, ROTATION AND SCALE!
-    //Way down the line you can do sheer, skew, etc
-}
-#[derive(Debug)]
-pub struct Image {
-    pub diffuse_bind_group: wgpu::BindGroup,
-    pub vertex_buffer: wgpu::Buffer,
-    pub index_buffer: wgpu::Buffer,
-    pub num_indices: u32,
-}
-
-impl Image {
-    pub fn load_image(
-        path: &str,
-        transform: Transform,
-        device: &wgpu::Device,
-        queue: &Queue,
-        texture_bind_group_layout: &wgpu::BindGroupLayout,
-        diffuse_sampler: &wgpu::Sampler,
-    ) -> Image {
-        let (diffuse_texture, diffuse_rgba) = Self::ingest_image(path, device);
-        //if you included normals etc you'd want a material struct
-
-        let new_image = ImagePlacement::new((diffuse_texture.width(), diffuse_texture.height()));
-        let placement = ImagePlacement::place(
-            new_image,
-            transform.scale,
-            transform.translation,
-            Rotation2D::theta(transform.rotation[2]),
-        );
-
-        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Vertex Buffer2"),
-            contents: bytemuck::cast_slice(&placement.vertices),
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-        let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Index Buffer2"),
-            contents: bytemuck::cast_slice(&placement.indices),
-            usage: wgpu::BufferUsages::INDEX,
-        });
-        let num_indices = placement.indices.len() as u32; //should always be sixe for a square
-
-        queue.write_texture(
-            // Tells wgpu where to copy the pixel data
-            wgpu::ImageCopyTexture {
-                texture: &diffuse_texture,
-                mip_level: 0,
-                origin: wgpu::Origin3d::ZERO,
-                aspect: wgpu::TextureAspect::All,
+    let (device, queue) = adapter
+        .request_device(
+            &wgpu::DeviceDescriptor {
+                label: None,
+                required_features: wgpu::Features::empty(),
+                required_limits: wgpu::Limits::default(),
             },
-            // The actual pixel data
-            &diffuse_rgba,
-            // The layout of the texture
-            wgpu::ImageDataLayout {
-                offset: 0,
-                bytes_per_row: Some(4 * diffuse_texture.width()), //Is calling this function each time computationally expensive?
-                rows_per_image: Some(diffuse_texture.height()),
-            },
-            diffuse_texture.size(),
-        );
-        let diffuse_texture_view =
-            diffuse_texture.create_view(&wgpu::TextureViewDescriptor::default());
-        let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &texture_bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&diffuse_texture_view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&diffuse_sampler),
-                },
-            ],
-            label: Some("diffuse_bind_group"),
-        });
+            None,
+        )
+        .await
+        .unwrap();
 
-        //return (diffuse_bind_group, vertex_buffer, index_buffer, num_indices);
-        Image {
-            diffuse_bind_group: diffuse_bind_group,
-            vertex_buffer: vertex_buffer,
-            index_buffer: index_buffer,
-            num_indices: num_indices,
-        }
-    }
+    (surface, config, device, queue)
+    //returns surface, config, device, queue
+}
 
-    fn ingest_image(
-        //TODO move to image struct
-        image_path: &str,
-        device: &wgpu::Device,
-    ) -> (Texture, ImageBuffer<Rgba<u8>, Vec<u8>>) {
-        let diffuse_bytes = std::fs::read(image_path).unwrap(); //should be equivelent to include_bytes!()
-        let diffuse_image = image::load_from_memory(&diffuse_bytes).unwrap();
-        let diffuse_rgba = diffuse_image.to_rgba8();
-
-        let diffuse_texture = device.create_texture(&wgpu::TextureDescriptor {
-            // All textures are stored as 3D, we represent our 2D texture
-            // by setting depth to 1.
-            size: wgpu::Extent3d {
-                width: diffuse_image.dimensions().0,
-                height: diffuse_image.dimensions().1,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
-            label: Some("diffuse_texture"),
-            view_formats: &[],
-        });
-        (diffuse_texture, diffuse_rgba)
-    }
+fn handle_window_event(event: Event<()>, window: &EventLoopWindowTarget<()>) {
+    match event {
+        Event::WindowEvent {
+            event: ref window_event,
+            window_id: _,
+        } => match window_event {
+            WindowEvent::CloseRequested => {
+                window.exit();
+            }
+            _ => {}
+        },
+        _ => {}
+    };
 }

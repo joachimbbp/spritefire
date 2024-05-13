@@ -19,3 +19,8 @@ tokio = { version = "1.37.0", features = ["full"] }
 shaderc = "0.8"
 futures-intrusive = "0.4"                               # what is futures-intrusive?
 bytemuck = { version = "1.15", features = ["derive"] }
+
+
+#Temp for debugging
+winit = "0.29.15"
+env_logger = "0.11.3" #perhaps not the best, but we'll use for now
