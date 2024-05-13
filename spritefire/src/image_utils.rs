@@ -312,7 +312,7 @@ pub fn ingest_image(
     image_path: &str,
     device: &wgpu::Device,
 ) -> (Texture, ImageBuffer<Rgba<u8>, Vec<u8>>) {
-    println!("\nImage ingesting...");
+    println!("\nIngesting {}", image_path);
     let diffuse_bytes = std::fs::read(image_path).unwrap(); //should be equivelent to include_bytes!()
     let diffuse_image = image::load_from_memory(&diffuse_bytes).unwrap();
     let diffuse_rgba = diffuse_image.to_rgba8();

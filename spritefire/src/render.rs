@@ -16,40 +16,12 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
-pub async fn run() {
+pub async fn run(canvas: Vec<image_utils::Image>) {
     env_logger::init();
     //BIG TODO: Custom error handling
 
-    let clear_color = wgpu::Color {
-        r: 0.3,
-        g: 0.4,
-        b: 0.8,
-        a: 1.0,
-    };
+    let (device, queue, texture_bind_group_layout, diffuse_sampler) = key_data().await;
 
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::all(),
-        ..Default::default()
-    });
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::default(),
-            compatible_surface: None,
-            force_fallback_adapter: false,
-        })
-        .await
-        .unwrap();
-    let (device, queue) = adapter
-        .request_device(
-            &wgpu::DeviceDescriptor {
-                label: None,
-                required_features: wgpu::Features::empty(),
-                required_limits: wgpu::Limits::default(),
-            },
-            None,
-        )
-        .await
-        .unwrap();
     let texture_size = (3840, 2160); //possibly make this square, then crop on the png save?
                                      //possible other solves re: TextureDimension
     let texture_desc = wgpu::TextureDescriptor {
@@ -82,102 +54,13 @@ pub async fn run() {
     };
     let output_buffer = device.create_buffer(&output_buffer_desc);
 
-    let texture_bind_group_layout: wgpu::BindGroupLayout = //might not need this...
-        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Texture {
-                        multisampled: false,
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    // This should match the filterable field of the
-                    // corresponding Texture entry above.
-                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                    count: None,
-                },
-            ],
-            label: Some("texture_bind_group_layout"),
-        });
-    let diffuse_sampler: wgpu::Sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-        address_mode_u: wgpu::AddressMode::ClampToEdge,
-        address_mode_v: wgpu::AddressMode::ClampToEdge,
-        address_mode_w: wgpu::AddressMode::ClampToEdge,
-        mag_filter: wgpu::FilterMode::Linear,
-        min_filter: wgpu::FilterMode::Nearest,
-        mipmap_filter: wgpu::FilterMode::Nearest,
-        ..Default::default()
-    });
-
     //LOADING UP MULTIPLE IMAGES as a TEST
-    let mut emojis_vec: Vec<image_utils::Image> = vec![];
-    let raw_emojis = fs::read_dir("/Users/joachimpfefferkorn/Desktop/some_emojis").unwrap();
 
-    let mut rotation = 0.0;
-    for emoji in raw_emojis {
-        rotation = rotation + 0.2;
-        let path = emoji.unwrap().path();
-        let path_str = path.to_str().expect("Path is not a string");
-        let transform = image_utils::Transform {
-            scale: 0.0005,
-            rotation: image_utils::Coordinates {
-                x: 0.0,
-                y: 0.0,
-                z: rotation,
-            },
-            translation: image_utils::Coordinates {
-                x: -0.1,
-                y: 0.5,
-                z: 0.0,
-            },
-        };
-        let image = image_utils::Image::load_image(
-            path_str,
-            transform,
-            &device,
-            &queue,
-            &texture_bind_group_layout,
-            &diffuse_sampler,
-        );
-        emojis_vec.push(image);
-    }
-
+    //emojis_vec
     /////////////////////
 
     let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
     //in the headless version, this is split into two...
-
-    let texture_bind_group_layout =
-        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Texture {
-                        multisampled: false,
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    // This should match the filterable field of the
-                    // corresponding Texture entry above.
-                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                    count: None,
-                },
-            ],
-            label: Some("texture_bind_group_layout"),
-        });
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Render Pipeline Layout"),
@@ -258,7 +141,7 @@ pub async fn run() {
         let mut render_pass = encoder.begin_render_pass(&render_pass_desc);
 
         render_pass.set_pipeline(&render_pipeline);
-        for image in &emojis_vec {
+        for image in &canvas {
             let (bind_group, vertex_buffer, index_buffer, indices) = setup_image(image);
 
             render_pass.set_bind_group(0, bind_group, &[]);
@@ -320,4 +203,65 @@ fn setup_image(image: &Image) -> (&wgpu::BindGroup, &wgpu::Buffer, &wgpu::Buffer
         &image.index_buffer,
         0..image.num_indices,
     )
+}
+
+pub async fn key_data() -> (Device, Queue, wgpu::BindGroupLayout, wgpu::Sampler) {
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: wgpu::Backends::all(),
+        ..Default::default()
+    });
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::default(),
+            compatible_surface: None,
+            force_fallback_adapter: false,
+        })
+        .await
+        .unwrap();
+    let (device, queue) = adapter
+        .request_device(
+            &wgpu::DeviceDescriptor {
+                label: None,
+                required_features: wgpu::Features::empty(),
+                required_limits: wgpu::Limits::default(),
+            },
+            None,
+        )
+        .await
+        .unwrap();
+
+    let texture_bind_group_layout: wgpu::BindGroupLayout =
+        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        multisampled: false,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    // This should match the filterable field of the
+                    // corresponding Texture entry above.
+                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                    count: None,
+                },
+            ],
+            label: Some("texture_bind_group_layout"),
+        });
+    let diffuse_sampler: wgpu::Sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+        address_mode_u: wgpu::AddressMode::ClampToEdge,
+        address_mode_v: wgpu::AddressMode::ClampToEdge,
+        address_mode_w: wgpu::AddressMode::ClampToEdge,
+        mag_filter: wgpu::FilterMode::Linear,
+        min_filter: wgpu::FilterMode::Nearest,
+        mipmap_filter: wgpu::FilterMode::Nearest,
+        ..Default::default()
+    });
+    (device, queue, texture_bind_group_layout, diffuse_sampler)
 }
