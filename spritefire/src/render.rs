@@ -1,5 +1,6 @@
 use crate::image_utils;
 use crate::image_utils::Image;
+use image::flat::NormalForm;
 use image::{GenericImageView, ImageBuffer, Rgba};
 use std::fs;
 use std::iter;
@@ -18,26 +19,70 @@ use winit::{
 pub async fn run() {
     env_logger::init();
     //BIG TODO: Custom error handling
-    let event_loop = EventLoop::new().unwrap();
-    let surface_size: (u32, u32) = (1920, 1920); //Maybe make this just one value as you pretty much always want your surface to be square?
+
     let clear_color = wgpu::Color {
         r: 0.3,
         g: 0.4,
         b: 0.8,
         a: 1.0,
     };
-    let window = WindowBuilder::new()
-        .with_title("wgpu bootstrap")
-        .with_inner_size(winit::dpi::PhysicalSize::new(
-            surface_size.0,
-            surface_size.1,
-        ))
-        .build(&event_loop)
-        .unwrap();
 
-    let (surface, config, device, queue) = initialize_surface(&window, surface_size).await;
-    surface.configure(&device, &config);
-    let texture_bind_group_layout: wgpu::BindGroupLayout =
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: wgpu::Backends::all(),
+        ..Default::default()
+    });
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::default(),
+            compatible_surface: None,
+            force_fallback_adapter: false,
+        })
+        .await
+        .unwrap();
+    let (device, queue) = adapter
+        .request_device(
+            &wgpu::DeviceDescriptor {
+                label: None,
+                required_features: wgpu::Features::empty(),
+                required_limits: wgpu::Limits::default(),
+            },
+            None,
+        )
+        .await
+        .unwrap();
+    let texture_size = (3840, 2160); //possibly make this square, then crop on the png save?
+                                     //possible other solves re: TextureDimension
+    let texture_desc = wgpu::TextureDescriptor {
+        size: wgpu::Extent3d {
+            width: texture_size.0,
+            height: texture_size.1,
+            depth_or_array_layers: 1,
+        },
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: wgpu::TextureDimension::D2,
+        format: wgpu::TextureFormat::Rgba8UnormSrgb,
+        usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
+        label: None,
+        view_formats: &[],
+    };
+    let texture = device.create_texture(&texture_desc);
+    let texture_view = texture.create_view(&Default::default());
+
+    let u32_size = std::mem::size_of::<u32>() as u32;
+
+    let output_buffer_size = (u32_size * texture_size.0 * texture_size.1) as wgpu::BufferAddress;
+    let output_buffer_desc = wgpu::BufferDescriptor {
+        size: output_buffer_size,
+        usage: wgpu::BufferUsages::COPY_DST
+            // this tells wpgu that we want to read this buffer from the cpu
+            | wgpu::BufferUsages::MAP_READ,
+        label: None,
+        mapped_at_creation: false,
+    };
+    let output_buffer = device.create_buffer(&output_buffer_desc);
+
+    let texture_bind_group_layout: wgpu::BindGroupLayout = //might not need this...
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             entries: &[
                 wgpu::BindGroupLayoutEntry {
@@ -71,7 +116,7 @@ pub async fn run() {
         ..Default::default()
     });
 
-    //LOADING UP MULTIPLE IMAGES
+    //LOADING UP MULTIPLE IMAGES as a TEST
     let mut emojis_vec: Vec<image_utils::Image> = vec![];
     let raw_emojis = fs::read_dir("/Users/joachimpfefferkorn/Desktop/some_emojis").unwrap();
 
@@ -105,17 +150,10 @@ pub async fn run() {
     }
 
     /////////////////////
-    let encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("Render Encoder"),
-    });
-
-    let output = surface.get_current_texture().unwrap(); //could be a better name
-
-    let view = output //is this the viewscreen?
-        .texture
-        .create_view(&wgpu::TextureViewDescriptor::default());
 
     let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
+    //in the headless version, this is split into two...
+
     let texture_bind_group_layout =
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             entries: &[
@@ -159,7 +197,7 @@ pub async fn run() {
             module: &shader,
             entry_point: "fs_main",
             targets: &[Some(wgpu::ColorTargetState {
-                format: config.format,
+                format: texture_desc.format,
                 blend: Some(wgpu::BlendState {
                     color: wgpu::BlendComponent {
                         src_factor: wgpu::BlendFactor::SrcAlpha,
@@ -194,61 +232,85 @@ pub async fn run() {
         // indicates how many array layers the attachments will have.
         multiview: None,
     });
-    render(
-        encoder,
-        &view,
-        &clear_color,
-        &render_pipeline,
-        emojis_vec,
-        &queue,
-        output,
-    );
 
-    let _ = event_loop.run(move |event, window| handle_window_event(event, window));
-}
-
-//RENDER FUNCTIONS
-fn render(
-    mut encoder: wgpu::CommandEncoder,
-    view: &TextureView,
-    clear_color: &wgpu::Color,
-    render_pipeline: &wgpu::RenderPipeline,
-
-    images: Vec<Image>,
-
-    queue: &Queue,
-    output: SurfaceTexture,
-) {
-    let mut render_pass: wgpu::RenderPass<'_> =
-        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+    let mut encoder =
+        device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+    {
+        let render_pass_desc = wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: &view,
+                view: &texture_view,
                 resolve_target: None,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(*clear_color),
+                    load: wgpu::LoadOp::Clear(wgpu::Color {
+                        r: 0.1,
+                        g: 0.2,
+                        b: 0.3,
+                        a: 1.0,
+                    }),
                     store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
             occlusion_query_set: None,
             timestamp_writes: None,
-        });
-    render_pass.set_pipeline(&render_pipeline);
+        };
+        let mut render_pass = encoder.begin_render_pass(&render_pass_desc);
 
-    for image in &images {
-        let (bind_group, vertex_buffer, index_buffer, indices) = setup_image(image);
+        render_pass.set_pipeline(&render_pipeline);
+        for image in &emojis_vec {
+            let (bind_group, vertex_buffer, index_buffer, indices) = setup_image(image);
 
-        render_pass.set_bind_group(0, bind_group, &[]);
-        render_pass.set_vertex_buffer(0, vertex_buffer.slice(..));
-        render_pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-        render_pass.draw_indexed(indices, 0, 0..1);
+            render_pass.set_bind_group(0, bind_group, &[]);
+            render_pass.set_vertex_buffer(0, vertex_buffer.slice(..));
+            render_pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+            render_pass.draw_indexed(indices, 0, 0..1);
+        }
+        render_pass.draw(0..3, 0..1);
+        drop(render_pass);
     }
-    drop(render_pass);
 
-    queue.submit(iter::once(encoder.finish()));
+    encoder.copy_texture_to_buffer(
+        wgpu::ImageCopyTexture {
+            aspect: wgpu::TextureAspect::All,
+            texture: &texture,
+            mip_level: 0,
+            origin: wgpu::Origin3d::ZERO,
+        },
+        wgpu::ImageCopyBuffer {
+            buffer: &output_buffer,
+            layout: wgpu::ImageDataLayout {
+                offset: 0,
+                bytes_per_row: Some(u32_size * texture_size.0),
+                rows_per_image: Some(texture_size.0),
+            },
+        },
+        texture_desc.size,
+    );
 
-    output.present();
+    queue.submit(Some(encoder.finish()));
+    // We need to scope the mapping variables so that we can
+    // unmap the buffer
+    {
+        let buffer_slice = output_buffer.slice(..);
+
+        // NOTE: We have to create the mapping THEN device.poll() before await
+        // the future. Otherwise the application will freeze.
+        let (tx, rx) = futures_intrusive::channel::shared::oneshot_channel();
+        buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
+            tx.send(result).unwrap();
+        });
+        device.poll(wgpu::Maintain::Wait);
+        rx.receive().await.unwrap().unwrap();
+
+        let data = buffer_slice.get_mapped_range();
+
+        use image::{ImageBuffer, Rgba};
+        let buffer =
+            ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size.0, texture_size.1, data).unwrap();
+        buffer.save("image.png").unwrap();
+    }
+    output_buffer.unmap();
 }
 
 fn setup_image(image: &Image) -> (&wgpu::BindGroup, &wgpu::Buffer, &wgpu::Buffer, Range<u32>) {
@@ -258,76 +320,4 @@ fn setup_image(image: &Image) -> (&wgpu::BindGroup, &wgpu::Buffer, &wgpu::Buffer
         &image.index_buffer,
         0..image.num_indices,
     )
-}
-
-//WINDOW and SURFACE FUNCTIONS
-async fn initialize_surface<'a>(
-    window: &'a Window,
-    surface_size: (u32, u32),
-) -> (wgpu::Surface<'a>, SurfaceConfiguration, Device, Queue) {
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::all(),
-        ..Default::default()
-    });
-
-    let surface = instance.create_surface(window).unwrap(); //Is not borrowing this RAM intensive?
-
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::default(),
-            compatible_surface: Some(&surface),
-            force_fallback_adapter: false,
-        })
-        .await
-        .unwrap();
-
-    let surface_caps = surface.get_capabilities(&adapter);
-
-    let surface_format = surface_caps //this is so verbose, we can probably make it shorter, look into wgpu::Surface::get_default_config
-        .formats
-        .iter()
-        .copied()
-        .find(|f| f.is_srgb())
-        .unwrap_or(surface_caps.formats[0]);
-
-    let config = wgpu::SurfaceConfiguration {
-        desired_maximum_frame_latency: 2,
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-        format: surface_format,
-        width: surface_size.0,
-        height: surface_size.1,
-        present_mode: surface_caps.present_modes[0],
-        alpha_mode: surface_caps.alpha_modes[0],
-        view_formats: vec![],
-    };
-
-    let (device, queue) = adapter
-        .request_device(
-            &wgpu::DeviceDescriptor {
-                label: None,
-                required_features: wgpu::Features::empty(),
-                required_limits: wgpu::Limits::default(),
-            },
-            None,
-        )
-        .await
-        .unwrap();
-
-    (surface, config, device, queue)
-    //returns surface, config, device, queue
-}
-
-fn handle_window_event(event: Event<()>, window: &EventLoopWindowTarget<()>) {
-    match event {
-        Event::WindowEvent {
-            event: ref window_event,
-            window_id: _,
-        } => match window_event {
-            WindowEvent::CloseRequested => {
-                window.exit();
-            }
-            _ => {}
-        },
-        _ => {}
-    };
 }
