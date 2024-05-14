@@ -59,14 +59,6 @@ impl Vertex {
 }
 
 #[derive(Copy, Clone, Debug)]
-struct Corners {
-    top_left: (f32, f32),
-    bottom_left: (f32, f32),
-    bottom_right: (f32, f32),
-    top_right: (f32, f32),
-}
-
-#[derive(Copy, Clone, Debug)]
 struct ImagePlacement {
     vertices: [Vertex; 4],
     indices: [u16; 6],
@@ -92,7 +84,25 @@ impl ImagePlacement {
     }
     fn get_vertices(image_resolution: (u32, u32)) -> [Vertex; 4] {
         let (width, height) = (image_resolution.0 as f32, image_resolution.1 as f32);
-
+        [
+            Vertex {
+                position: [-100.0, 100.0, 0.0],
+                tex_coords: [0.0, 0.0],
+            }, // top_left
+            Vertex {
+                position: [-100.0, -100.0, 0.0],
+                tex_coords: [0.0, 1.0],
+            }, // bottom_left
+            Vertex {
+                position: [100.0, -100.0, 0.0],
+                tex_coords: [1.0, 1.0],
+            }, // bottom_right
+            Vertex {
+                position: [100.0, 100.0, 0.0],
+                tex_coords: [1.0, 0.0],
+            }, // top_right
+        ]
+        /*
         [
             Vertex {
                 position: [width * -0.5, height * 0.5, 0.0],
@@ -111,6 +121,7 @@ impl ImagePlacement {
                 tex_coords: [1.0, 0.0],
             }, // top_right
         ]
+        */
     }
 
     fn scale(input_placement: &ImagePlacement, scale_factor: f32) -> ImagePlacement {
@@ -186,13 +197,7 @@ impl ImagePlacement {
         };
         translated
     }
-    fn rows_x_cols(x: f32, y: f32, theta: f32) -> (f32, f32) {
-        let rotation = Rotation2D::theta(theta); //TODO name theta what it is (degrees, radians, quaterions, lets find out?)
-        (
-            rotation.tl * x + rotation.tr * y,
-            rotation.bl * x + rotation.br * y,
-        )
-    }
+
     fn rotate(input_placement: &ImagePlacement, theta: f32) -> ImagePlacement {
         let mut rotated: ImagePlacement = *input_placement;
 
@@ -236,6 +241,14 @@ impl ImagePlacement {
             tex_coords: input_placement.vertices[3].tex_coords,
         };
         rotated
+    }
+
+    fn rows_x_cols(x: f32, y: f32, theta: f32) -> (f32, f32) {
+        let rotation = Rotation2D::theta(theta); //TODO name theta what it is (degrees, radians, quaterions, lets find out?)
+        (
+            rotation.tl * x + rotation.tr * y,
+            rotation.bl * x + rotation.br * y,
+        )
     }
 }
 

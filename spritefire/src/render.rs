@@ -1,28 +1,16 @@
 use crate::desktop::PlacedSprite;
 use crate::image_utils;
 use crate::image_utils::Image;
-use image::flat::NormalForm;
-use image::{GenericImageView, ImageBuffer, Rgba};
-use std::fs;
-use std::iter;
+use image::{ImageBuffer, Rgba};
 use std::ops::Range;
-use wgpu::util::DeviceExt;
-use wgpu::{
-    self, Adapter, Device, Extent3d, Queue, SurfaceConfiguration, SurfaceTexture, Texture,
-    TextureView,
-};
-use winit::{
-    event::*,
-    event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
-    window::{Window, WindowBuilder},
-};
+use wgpu::{self, Device, Queue};
 
 pub async fn run(canvas: Vec<PlacedSprite>) {
     env_logger::init();
     //BIG TODO: Custom error handling
     let (device, queue, texture_bind_group_layout, diffuse_sampler) = key_data().await;
 
-    let texture_size = (3840, 2160); //possibly make this square, then crop on the png save?
+    let texture_size = (3840, 3840); //possibly make this square, then crop on the png save?
                                      //possible other solves re: TextureDimension
     let texture_desc = wgpu::TextureDescriptor {
         size: wgpu::Extent3d {
@@ -53,11 +41,6 @@ pub async fn run(canvas: Vec<PlacedSprite>) {
         mapped_at_creation: false,
     };
     let output_buffer = device.create_buffer(&output_buffer_desc);
-
-    //LOADING UP MULTIPLE IMAGES as a TEST
-
-    //emojis_vec
-    /////////////////////
 
     let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
     //in the headless version, this is split into two...
@@ -126,10 +109,10 @@ pub async fn run(canvas: Vec<PlacedSprite>) {
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color {
-                        r: 0.1,
-                        g: 0.2,
-                        b: 0.3,
-                        a: 1.0,
+                        r: 0.0,
+                        g: 0.0,
+                        b: 0.0,
+                        a: 0.0,
                     }),
                     store: wgpu::StoreOp::Store,
                 },

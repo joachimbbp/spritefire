@@ -79,11 +79,12 @@ async fn make_canvas(
                 let emoji = db.lookup_closest_dense_emoji(Rgb([avg_r, avg_g, avg_b]));
                 let unicode_emoji = format!("{:x}", emoji.chars().next().unwrap() as u32);
                 let sprite_path = format!("{}emoji_u{}.png", sprite_root, unicode_emoji); //terrible parsing gore omg
+
                 let transform = image_utils::Transform {
                     //TEMP GARBO
-                    scale: 0.0005,
+                    scale: 0.005,
                     rotation: 0.0,
-                    translation: [0.5, 0.5, 0.0],
+                    translation: [0.0, 0.0, 0.0],
                 };
                 canvas.push(PlacedSprite::build(sprite_path, transform));
             }
