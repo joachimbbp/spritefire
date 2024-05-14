@@ -82,9 +82,9 @@ async fn make_canvas(
                 let sprite_path = format!("{}emoji_u{}.png", sprite_root, unicode_emoji); //terrible parsing gore omg
                 let transform = image_utils::Transform {
                     //TEMP GARBO
-                    scale: 0.0005,
-                    rotation: [0.0, 0.0, 0.0],
-                    translation: [-0.1, 0.5, 0.0],
+                    scale: 1.0,
+                    rotation: 0.0,
+                    translation: [0.5, 0.5, 0.0],
                 };
                 canvas.push(PlacedSprite::build(sprite_path, transform));
             }

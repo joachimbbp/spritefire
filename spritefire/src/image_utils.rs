@@ -4,12 +4,13 @@ use wgpu::{util::DeviceExt, Queue, Texture};
 #[derive(Debug, Clone, Copy)]
 pub struct Transform {
     pub scale: f32,
-    pub rotation: [f32; 3],
+    pub rotation: f32,
     pub translation: [f32; 3],
 }
 
 #[derive(Copy, Clone, Debug)]
 struct Rotation2D {
+    //TODO change to an array of arrays: [(f32, f32); 4]
     //This is probably not the best way to do it
     //I am guessing if you do everything as an array there is a math library that will help you
     tl: f32, //top left
@@ -59,162 +60,178 @@ impl Vertex {
 }
 
 #[derive(Copy, Clone, Debug)]
-struct Corners {
-    top_left: (f32, f32),
-    bottom_left: (f32, f32),
-    bottom_right: (f32, f32),
-    top_right: (f32, f32),
-}
-
-#[derive(Copy, Clone, Debug)]
 struct ImagePlacement {
-    corners: Corners,
+    //vertices read counter clockwise, (x, y)
     vertices: [Vertex; 4],
     indices: [u16; 6],
 }
 
 impl ImagePlacement {
-    fn new(image_resolution: (u32, u32)) -> ImagePlacement {
-        let generated_corners = ImagePlacement::get_corners(image_resolution);
+    fn new(image_resolution: (f32, f32)) -> ImagePlacement {
         ImagePlacement {
-            corners: generated_corners,
-            vertices: ImagePlacement::corners_to_verts(generated_corners),
+            vertices: ImagePlacement::get_vertices(image_resolution),
             indices: [0, 1, 3, 1, 2, 3],
         }
+    }
+
+    fn get_vertices(image_resolution: (f32, f32)) -> [Vertex; 4] {
+        [
+            Vertex {
+                position: [image_resolution.0 * -0.5, image_resolution.1 * 0.5, 0.0],
+                tex_coords: [0.0, 0.0],
+            },
+            Vertex {
+                position: [image_resolution.0 * -0.5, image_resolution.1 * -0.5, 0.0],
+                tex_coords: [0.0, 1.0],
+            },
+            Vertex {
+                position: [image_resolution.0 * 0.5, image_resolution.1 * -0.5, 0.0],
+                tex_coords: [1.0, 1.0],
+            },
+            Vertex {
+                position: [image_resolution.0 * 0.5, image_resolution.1 * 0.5, 0.0],
+                tex_coords: [1.0, 0.0],
+            },
+        ]
     }
     fn place(
         placement: ImagePlacement,
         scale_factor: f32,
         pos: [f32; 3],
-        rotation: Rotation2D,
+        rotation: f32,
     ) -> ImagePlacement {
         let placement = ImagePlacement::scale(&placement, scale_factor);
         let placement = ImagePlacement::translate(&placement, &pos);
         let placement = ImagePlacement::rotate(&placement, rotation);
         placement
     }
-    fn corners_to_verts(corners: Corners) -> [Vertex; 4] {
-        [
-            Vertex {
-                position: [corners.top_left.0, corners.top_left.1, 0.0],
-                tex_coords: [0.0, 0.0],
-            }, // 0
-            Vertex {
-                position: [corners.bottom_left.0, corners.bottom_left.1, 0.0],
-                tex_coords: [0.0, 1.0],
-            }, // 1
-            Vertex {
-                position: [corners.bottom_right.0, corners.bottom_right.1, 0.0],
-                tex_coords: [1.0, 1.],
-            }, // 2
-            Vertex {
-                position: [corners.top_right.0, corners.top_right.1, 0.0],
-                tex_coords: [1.0, 0.0],
-            }, // 3
-        ]
-    }
-    fn get_corners(image_resolution: (u32, u32)) -> Corners {
-        let mut corners = Corners {
-            top_left: (0.0, 0.0),
-            bottom_left: (0.0, 0.0),
-            bottom_right: (0.0, 0.0),
-            top_right: (0.0, 0.0),
-        };
-        corners.top_left = (
-            image_resolution.0 as f32 * -0.5,
-            image_resolution.1 as f32 * 0.5,
-        );
-        corners.bottom_left = (
-            image_resolution.0 as f32 * -0.5,
-            image_resolution.1 as f32 * -0.5,
-        );
-        corners.bottom_right = (
-            image_resolution.0 as f32 * 0.5,
-            image_resolution.1 as f32 * -0.5,
-        );
-        corners.top_right = (
-            image_resolution.0 as f32 * 0.5,
-            image_resolution.1 as f32 * 0.5,
-        );
-        corners
-    }
 
     fn scale(input_placement: &ImagePlacement, scale_factor: f32) -> ImagePlacement {
         let mut scaled: ImagePlacement = *input_placement;
-        scaled.corners.top_left = (
-            scaled.corners.top_left.0 * scale_factor,
-            scaled.corners.top_left.1 * scale_factor,
-        );
-        scaled.corners.bottom_left = (
-            scaled.corners.bottom_left.0 * scale_factor,
-            scaled.corners.bottom_left.1 * scale_factor,
-        );
-        scaled.corners.bottom_right = (
-            scaled.corners.bottom_right.0 * scale_factor,
-            scaled.corners.bottom_right.1 * scale_factor,
-        );
-        scaled.corners.top_right = (
-            scaled.corners.top_right.0 * scale_factor,
-            scaled.corners.top_right.1 * scale_factor,
-        );
-        scaled.vertices = ImagePlacement::corners_to_verts(scaled.corners);
+        scaled.vertices[0] = Vertex {
+            position: [
+                input_placement.vertices[0].position[0] * scale_factor,
+                input_placement.vertices[0].position[1] * scale_factor,
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[0].tex_coords,
+        };
+        scaled.vertices[1] = Vertex {
+            position: [
+                input_placement.vertices[1].position[0] * scale_factor,
+                input_placement.vertices[1].position[1] * scale_factor,
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[1].tex_coords,
+        };
+        scaled.vertices[2] = Vertex {
+            position: [
+                input_placement.vertices[2].position[0] * scale_factor,
+                input_placement.vertices[2].position[1] * scale_factor,
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[2].tex_coords,
+        };
+        scaled.vertices[3] = Vertex {
+            position: [
+                input_placement.vertices[3].position[0] * scale_factor,
+                input_placement.vertices[3].position[1] * scale_factor,
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[3].tex_coords,
+        };
         scaled
     }
 
-    fn translate(current_pos: &ImagePlacement, offset: &[f32; 3]) -> ImagePlacement {
+    fn translate(input_placement: &ImagePlacement, offset: &[f32; 3]) -> ImagePlacement {
         //every x value is added to the x offset, and every y to the y
-        let mut translated: ImagePlacement = *current_pos;
-        translated.corners.top_left = (
-            translated.corners.top_left.0 + offset[0],
-            translated.corners.top_left.1 + offset[1],
-        );
-        translated.corners.bottom_left = (
-            translated.corners.bottom_left.0 + offset[0],
-            translated.corners.bottom_left.1 + offset[1],
-        );
-        translated.corners.bottom_right = (
-            translated.corners.bottom_right.0 + offset[0],
-            translated.corners.bottom_right.1 + offset[1],
-        );
-        translated.corners.top_right = (
-            translated.corners.top_right.0 + offset[0],
-            translated.corners.top_right.1 + offset[1],
-        );
-        translated.vertices = ImagePlacement::corners_to_verts(translated.corners);
+        let mut translated: ImagePlacement = *input_placement;
+        translated.vertices[0] = Vertex {
+            position: [
+                input_placement.vertices[0].position[0] + offset[0],
+                input_placement.vertices[0].position[1] + offset[1],
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[0].tex_coords,
+        };
+        translated.vertices[1] = Vertex {
+            position: [
+                input_placement.vertices[1].position[0] + offset[0],
+                input_placement.vertices[1].position[1] + offset[1],
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[1].tex_coords,
+        };
+        translated.vertices[2] = Vertex {
+            position: [
+                input_placement.vertices[2].position[0] + offset[0],
+                input_placement.vertices[2].position[1] + offset[1],
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[2].tex_coords,
+        };
+        translated.vertices[3] = Vertex {
+            position: [
+                input_placement.vertices[3].position[0] + offset[0],
+                input_placement.vertices[3].position[1] + offset[1],
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[3].tex_coords,
+        };
         translated
     }
 
-    fn rows_x_cols(x: f32, y: f32, matrix: Rotation2D) -> (f32, f32) {
-        (matrix.tl * x + matrix.tr * y, matrix.bl * x + matrix.br * y)
+    fn rows_x_cols(x: f32, y: f32, theta: f32) -> (f32, f32) {
+        let rotation = Rotation2D::theta(theta); //TODO name theta what it is (degrees, radians, quaterions, lets find out?)
+        (
+            rotation.tl * x + rotation.tr * y,
+            rotation.bl * x + rotation.br * y,
+        )
     }
-    fn rotate(current_pos: &ImagePlacement, rotation: Rotation2D) -> ImagePlacement {
-        let mut rotated: ImagePlacement = *current_pos;
-        rotated.corners.top_left = ImagePlacement::rows_x_cols(
-            rotated.corners.top_left.0,
-            rotated.corners.top_left.1,
-            rotation,
-        );
+    fn rotate(input_placement: &ImagePlacement, theta: f32) -> ImagePlacement {
+        let mut rotated: ImagePlacement = *input_placement;
 
-        rotated.corners.bottom_left = ImagePlacement::rows_x_cols(
-            rotated.corners.bottom_left.0,
-            rotated.corners.bottom_left.1,
-            rotation,
+        let top_left = ImagePlacement::rows_x_cols(
+            input_placement.vertices[0].position[0],
+            input_placement.vertices[0].position[1],
+            theta,
         );
-        rotated.corners.top_right = ImagePlacement::rows_x_cols(
-            rotated.corners.top_right.0,
-            rotated.corners.top_right.1,
-            rotation,
+        rotated.vertices[0] = Vertex {
+            position: [top_left.0, top_left.1, 0.0],
+            tex_coords: input_placement.vertices[0].tex_coords,
+        };
+
+        let bottom_left = ImagePlacement::rows_x_cols(
+            input_placement.vertices[1].position[0],
+            input_placement.vertices[1].position[1],
+            theta,
         );
-        rotated.corners.bottom_right = ImagePlacement::rows_x_cols(
-            rotated.corners.bottom_right.0,
-            rotated.corners.bottom_right.1,
-            rotation,
+        rotated.vertices[1] = Vertex {
+            position: [bottom_left.0, bottom_left.1, 0.0],
+            tex_coords: input_placement.vertices[1].tex_coords,
+        };
+
+        let bottom_right = ImagePlacement::rows_x_cols(
+            input_placement.vertices[2].position[0],
+            input_placement.vertices[2].position[1],
+            theta,
         );
-        rotated.vertices = ImagePlacement::corners_to_verts(rotated.corners);
+        rotated.vertices[2] = Vertex {
+            position: [bottom_right.0, bottom_right.1, 0.0],
+            tex_coords: input_placement.vertices[1].tex_coords,
+        };
+
+        let top_right = ImagePlacement::rows_x_cols(
+            input_placement.vertices[3].position[0],
+            input_placement.vertices[3].position[1],
+            theta,
+        );
+        rotated.vertices[3] = Vertex {
+            position: [top_right.0, top_right.1, 0.0],
+            tex_coords: input_placement.vertices[1].tex_coords,
+        };
         rotated
     }
-    //THEN YOU CAN HAVE HOOKS INTO TRANSLATION, ROTATION AND SCALE!
-    //Way down the line you can do sheer, skew, etc
 }
 
 #[derive(Debug)]
@@ -237,12 +254,15 @@ impl Image {
         let (diffuse_texture, diffuse_rgba) = ingest_image(path, device);
         //if you included normals etc you'd want a material struct
 
-        let new_image = ImagePlacement::new((diffuse_texture.width(), diffuse_texture.height()));
+        let new_image = ImagePlacement::new((
+            diffuse_texture.width() as f32,
+            diffuse_texture.height() as f32,
+        ));
         let placement = ImagePlacement::place(
             new_image,
             transform.scale,
             transform.translation,
-            Rotation2D::theta(transform.rotation[2]),
+            transform.rotation,
         );
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {

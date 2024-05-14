@@ -200,7 +200,6 @@ pub async fn run(canvas: Vec<PlacedSprite>) {
 
         let data = buffer_slice.get_mapped_range();
 
-        use image::{ImageBuffer, Rgba};
         let buffer =
             ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size.0, texture_size.1, data).unwrap();
         buffer.save("image.png").unwrap();
