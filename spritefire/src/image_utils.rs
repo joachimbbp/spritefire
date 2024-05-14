@@ -68,7 +68,6 @@ struct Corners {
 
 #[derive(Copy, Clone, Debug)]
 struct ImagePlacement {
-    corners: Corners,
     vertices: [Vertex; 4],
     indices: [u16; 6],
 }
@@ -77,7 +76,6 @@ impl ImagePlacement {
     fn new(image_resolution: (u32, u32)) -> ImagePlacement {
         let generated_corners = ImagePlacement::get_corners(image_resolution);
         ImagePlacement {
-            corners: generated_corners,
             vertices: ImagePlacement::corners_to_verts(generated_corners),
             indices: [0, 1, 3, 1, 2, 3],
         }
