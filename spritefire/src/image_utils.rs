@@ -74,9 +74,8 @@ struct ImagePlacement {
 
 impl ImagePlacement {
     fn new(image_resolution: (u32, u32)) -> ImagePlacement {
-        let generated_corners = ImagePlacement::get_corners(image_resolution);
         ImagePlacement {
-            vertices: ImagePlacement::corners_to_verts(generated_corners),
+            vertices: ImagePlacement::get_vertices(image_resolution),
             indices: [0, 1, 3, 1, 2, 3],
         }
     }
@@ -91,50 +90,27 @@ impl ImagePlacement {
         let placement = ImagePlacement::rotate(&placement, rotation);
         placement
     }
-    fn corners_to_verts(corners: Corners) -> [Vertex; 4] {
+    fn get_vertices(image_resolution: (u32, u32)) -> [Vertex; 4] {
+        let (width, height) = (image_resolution.0 as f32, image_resolution.1 as f32);
+
         [
             Vertex {
-                position: [corners.top_left.0, corners.top_left.1, 0.0],
+                position: [width * -0.5, height * 0.5, 0.0],
                 tex_coords: [0.0, 0.0],
-            }, // 0
+            }, // top_left
             Vertex {
-                position: [corners.bottom_left.0, corners.bottom_left.1, 0.0],
+                position: [width * -0.5, height * -0.5, 0.0],
                 tex_coords: [0.0, 1.0],
-            }, // 1
+            }, // bottom_left
             Vertex {
-                position: [corners.bottom_right.0, corners.bottom_right.1, 0.0],
-                tex_coords: [1.0, 1.],
-            }, // 2
+                position: [width * 0.5, height * -0.5, 0.0],
+                tex_coords: [1.0, 1.0],
+            }, // bottom_right
             Vertex {
-                position: [corners.top_right.0, corners.top_right.1, 0.0],
+                position: [width * 0.5, height * 0.5, 0.0],
                 tex_coords: [1.0, 0.0],
-            }, // 3
+            }, // top_right
         ]
-    }
-    fn get_corners(image_resolution: (u32, u32)) -> Corners {
-        let mut corners = Corners {
-            top_left: (0.0, 0.0),
-            bottom_left: (0.0, 0.0),
-            bottom_right: (0.0, 0.0),
-            top_right: (0.0, 0.0),
-        };
-        corners.top_left = (
-            image_resolution.0 as f32 * -0.5,
-            image_resolution.1 as f32 * 0.5,
-        );
-        corners.bottom_left = (
-            image_resolution.0 as f32 * -0.5,
-            image_resolution.1 as f32 * -0.5,
-        );
-        corners.bottom_right = (
-            image_resolution.0 as f32 * 0.5,
-            image_resolution.1 as f32 * -0.5,
-        );
-        corners.top_right = (
-            image_resolution.0 as f32 * 0.5,
-            image_resolution.1 as f32 * 0.5,
-        );
-        corners
     }
 
     fn scale(input_placement: &ImagePlacement, scale_factor: f32) -> ImagePlacement {

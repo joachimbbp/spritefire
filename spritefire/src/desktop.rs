@@ -1,6 +1,6 @@
 use crate::db::EmojiDatabase;
 use crate::image_utils;
-use crate::render::{key_data, run};
+use crate::render::run;
 use image::{DynamicImage, GenericImageView, Rgb};
 use tokio::runtime::Runtime;
 
@@ -43,7 +43,6 @@ async fn make_canvas(
 
     //let mut sprite_path: &str;
     let mut canvas: Vec<PlacedSprite> = vec![];
-    let (device, queue, texture_bind_group_layout, diffuse_sampler) = key_data().await;
 
     for y in 0..=num_squares_y {
         for x in 0..=num_squares_x {
@@ -82,8 +81,8 @@ async fn make_canvas(
                 let sprite_path = format!("{}emoji_u{}.png", sprite_root, unicode_emoji); //terrible parsing gore omg
                 let transform = image_utils::Transform {
                     //TEMP GARBO
-                    scale: 0.005,
-                    rotation: 8.0,
+                    scale: 0.0005,
+                    rotation: 0.0,
                     translation: [0.5, 0.5, 0.0],
                 };
                 canvas.push(PlacedSprite::build(sprite_path, transform));
