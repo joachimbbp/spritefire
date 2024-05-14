@@ -218,7 +218,7 @@ impl ImagePlacement {
         );
         rotated.vertices[2] = Vertex {
             position: [bottom_right.0, bottom_right.1, 0.0],
-            tex_coords: input_placement.vertices[1].tex_coords,
+            tex_coords: input_placement.vertices[2].tex_coords,
         };
 
         let top_right = ImagePlacement::rows_x_cols(
@@ -228,7 +228,7 @@ impl ImagePlacement {
         );
         rotated.vertices[3] = Vertex {
             position: [top_right.0, top_right.1, 0.0],
-            tex_coords: input_placement.vertices[1].tex_coords,
+            tex_coords: input_placement.vertices[3].tex_coords,
         };
         rotated
     }
@@ -327,7 +327,6 @@ pub fn ingest_image(
     image_path: &str,
     device: &wgpu::Device,
 ) -> (Texture, ImageBuffer<Rgba<u8>, Vec<u8>>) {
-    println!("\nIngesting {}", image_path);
     let diffuse_bytes = std::fs::read(image_path).unwrap(); //should be equivelent to include_bytes!()
     let diffuse_image = image::load_from_memory(&diffuse_bytes).unwrap();
     let diffuse_rgba = diffuse_image.to_rgba8();

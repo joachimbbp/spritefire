@@ -1,6 +1,6 @@
 use crate::db::EmojiDatabase;
 use crate::image_utils;
-use crate::render::{key_data, run};
+use crate::render::run;
 use image::{DynamicImage, GenericImageView, Rgb};
 use tokio::runtime::Runtime;
 
@@ -11,10 +11,12 @@ pub struct PlacedSprite {
 }
 impl PlacedSprite {
     fn build(sprite_path: String, transform: image_utils::Transform) -> PlacedSprite {
+        //        println!("\nSprite: {:#?}\nTransform: {:#?}", sprite_path, transform);
         PlacedSprite {
             sprite_path: sprite_path,
             transform: transform,
         }
+        //temp debug
     }
 }
 
@@ -43,7 +45,6 @@ async fn make_canvas(
 
     //let mut sprite_path: &str;
     let mut canvas: Vec<PlacedSprite> = vec![];
-    let (device, queue, texture_bind_group_layout, diffuse_sampler) = key_data().await;
 
     for y in 0..=num_squares_y {
         for x in 0..=num_squares_x {

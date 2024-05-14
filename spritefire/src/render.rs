@@ -141,6 +141,7 @@ pub async fn run(canvas: Vec<PlacedSprite>) {
         let mut updated_canvas: Vec<image_utils::Image> = vec![];
         //let mut canvas: Vec<PlacedSprite> = vec![];
         for sprite in &canvas {
+            println!("Sprite Transform:\n{:#?}\n", sprite.transform);
             updated_canvas.push(Image::load_image(
                 &sprite.sprite_path,
                 sprite.transform,
