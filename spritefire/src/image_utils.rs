@@ -141,23 +141,38 @@ impl ImagePlacement {
 
     fn scale(input_placement: &ImagePlacement, scale_factor: f32) -> ImagePlacement {
         let mut scaled: ImagePlacement = *input_placement;
-        scaled.corners.top_left = (
-            scaled.corners.top_left.0 * scale_factor,
-            scaled.corners.top_left.1 * scale_factor,
-        );
-        scaled.corners.bottom_left = (
-            scaled.corners.bottom_left.0 * scale_factor,
-            scaled.corners.bottom_left.1 * scale_factor,
-        );
-        scaled.corners.bottom_right = (
-            scaled.corners.bottom_right.0 * scale_factor,
-            scaled.corners.bottom_right.1 * scale_factor,
-        );
-        scaled.corners.top_right = (
-            scaled.corners.top_right.0 * scale_factor,
-            scaled.corners.top_right.1 * scale_factor,
-        );
-        scaled.vertices = ImagePlacement::corners_to_verts(scaled.corners);
+        scaled.vertices[0] = Vertex {
+            position: [
+                input_placement.vertices[0].position[0] * scale_factor,
+                input_placement.vertices[0].position[1] * scale_factor,
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[0].tex_coords,
+        };
+        scaled.vertices[1] = Vertex {
+            position: [
+                input_placement.vertices[1].position[0] * scale_factor,
+                input_placement.vertices[1].position[1] * scale_factor,
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[1].tex_coords,
+        };
+        scaled.vertices[2] = Vertex {
+            position: [
+                input_placement.vertices[2].position[0] * scale_factor,
+                input_placement.vertices[2].position[1] * scale_factor,
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[2].tex_coords,
+        };
+        scaled.vertices[3] = Vertex {
+            position: [
+                input_placement.vertices[3].position[0] * scale_factor,
+                input_placement.vertices[3].position[1] * scale_factor,
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[3].tex_coords,
+        };
         scaled
     }
     fn translate(input_placement: &ImagePlacement, offset: &[f32; 3]) -> ImagePlacement {
