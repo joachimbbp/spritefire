@@ -85,9 +85,9 @@ async fn make_canvas(
 
                 let transform = image_utils::Transform {
                     //TEMP GARBO
-                    scale: 0.75,
-                    rotation: 30.0,
-                    translation: [0.0, 0.0, 0.0],
+                    scale: 0.1,
+                    rotation: 0.0,
+                    translation: [-1.0 + (x as f32 / 5.0), 1.0 - (y as f32 / 5.0), 0.0],
                 };
                 canvas.push(PlacedSprite::build(sprite_path, transform));
             }
