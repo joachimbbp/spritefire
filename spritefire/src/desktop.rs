@@ -25,7 +25,7 @@ pub fn draw_frame(db: EmojiDatabase) {
     )
     .unwrap();
     let sprite_root = "/Users/joachimpfefferkorn/repos/spritefire/assets/sprites_512/";
-    let pool_size = 30;
+    let pool_size = 60;
     let output_dimensions = image_utils::ImageDimensions::build(1920, 1080);
 
     let rt = Runtime::new().unwrap();
@@ -53,11 +53,11 @@ async fn place_sprites(
     //hard coded for now with input resolution
 
     for y in 0..=num_squares_y {
-        offset.1 = 1.0 - increment.1 * y as f32; // Update the y-coordinate here
+        offset.1 = 1.0 - (increment.1 * y as f32); // Update the y-coordinate here
 
         for x in 0..=num_squares_x {
-            offset.0 = (-1.0 + increment.0 * x as f32) * 1.777; // Update the x-coordinate here
-                                                                //TEMP aspect ratio hard coded in
+            offset.0 = (-1.0 + increment.0 * x as f32) * 1.777777; // Update the x-coordinate here
+                                                                   //TEMP aspect ratio hard coded in
 
             let mut sum_r = 0;
             let mut sum_g = 0;
@@ -94,7 +94,7 @@ async fn place_sprites(
 
                 println!("Offset: {:#?}", offset);
                 let transform = image_utils::Transform {
-                    scale: 0.12, //garbo temp, TODO: what makes the scale?
+                    scale: 1.0 / ((num_squares_x * num_squares_y) as f32).sqrt(), //Might be something wrong here
                     rotation: 0.0,
                     translation: [offset.0, offset.1, 0.0],
                 };
