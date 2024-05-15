@@ -1,21 +1,19 @@
 use crate::desktop::PlacedSprite;
 use crate::image_utils;
-use crate::image_utils::Image;
+use crate::image_utils::{Image, ImageDimensions};
 use image::{ImageBuffer, Rgba};
 use std::ops::Range;
 use wgpu::{self, Device, Queue};
 
-pub async fn run(canvas: Vec<PlacedSprite>) {
+pub async fn run(canvas: Vec<PlacedSprite>, output_dimensions: ImageDimensions) {
     env_logger::init();
     //BIG TODO: Custom error handling
     let (device, queue, texture_bind_group_layout, diffuse_sampler) = key_data().await;
 
-    let texture_size = (3840, 3840); //possibly make this square, then crop on the png save?
-                                     //possible other solves re: TextureDimension
     let texture_desc = wgpu::TextureDescriptor {
         size: wgpu::Extent3d {
-            width: texture_size.0,
-            height: texture_size.1,
+            width: output_dimensions.resolution.0,
+            height: output_dimensions.resolution.1,
             depth_or_array_layers: 1,
         },
         mip_level_count: 1,
@@ -31,7 +29,9 @@ pub async fn run(canvas: Vec<PlacedSprite>) {
 
     let u32_size = std::mem::size_of::<u32>() as u32;
 
-    let output_buffer_size = (u32_size * texture_size.0 * texture_size.1) as wgpu::BufferAddress;
+    let output_buffer_size = (u32_size
+        * output_dimensions.resolution.0
+        * output_dimensions.resolution.1) as wgpu::BufferAddress;
     let output_buffer_desc = wgpu::BufferDescriptor {
         size: output_buffer_size,
         usage: wgpu::BufferUsages::COPY_DST
@@ -132,6 +132,7 @@ pub async fn run(canvas: Vec<PlacedSprite>) {
                 &queue,
                 &texture_bind_group_layout,
                 &diffuse_sampler,
+                output_dimensions.clone(),
             ));
         }
 
@@ -160,8 +161,8 @@ pub async fn run(canvas: Vec<PlacedSprite>) {
             buffer: &output_buffer,
             layout: wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: Some(u32_size * texture_size.0),
-                rows_per_image: Some(texture_size.0),
+                bytes_per_row: Some(u32_size * output_dimensions.resolution.0),
+                rows_per_image: Some(output_dimensions.resolution.0),
             },
         },
         texture_desc.size,
@@ -184,8 +185,12 @@ pub async fn run(canvas: Vec<PlacedSprite>) {
 
         let data = buffer_slice.get_mapped_range();
 
-        let buffer =
-            ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size.0, texture_size.1, data).unwrap();
+        let buffer = ImageBuffer::<Rgba<u8>, _>::from_raw(
+            output_dimensions.resolution.0,
+            output_dimensions.resolution.1,
+            data,
+        )
+        .unwrap();
         buffer.save("image.png").unwrap();
     }
     output_buffer.unmap();

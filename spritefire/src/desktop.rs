@@ -19,16 +19,19 @@ impl PlacedSprite {
 }
 
 pub fn draw_frame(db: EmojiDatabase) {
+    //TEMP HARD CODING
     let img = image::open(
         "/Users/joachimpfefferkorn/repos/spritefire/assets/test_footage/scuba/scuba102.png",
     )
     .unwrap();
     let sprite_root = "/Users/joachimpfefferkorn/repos/spritefire/assets/sprites_512/";
     let pool_size = 120;
+    let output_dimensions = image_utils::ImageDimensions::build(1920, 1080);
+
     let rt = Runtime::new().unwrap();
     let canvas = rt.block_on(make_canvas(&db, img, pool_size, &sprite_root));
     let handle = rt.handle();
-    handle.block_on(run(canvas));
+    handle.block_on(run(canvas, output_dimensions));
 }
 
 async fn make_canvas(
@@ -82,8 +85,8 @@ async fn make_canvas(
 
                 let transform = image_utils::Transform {
                     //TEMP GARBO
-                    scale: 0.005,
-                    rotation: 0.0,
+                    scale: 0.75,
+                    rotation: 30.0,
                     translation: [0.0, 0.0, 0.0],
                 };
                 canvas.push(PlacedSprite::build(sprite_path, transform));

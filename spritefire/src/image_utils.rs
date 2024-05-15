@@ -1,6 +1,20 @@
 use image::{GenericImageView, ImageBuffer, Rgba};
 use wgpu::{util::DeviceExt, Queue, Texture};
 
+#[derive(Debug, Clone)]
+pub struct ImageDimensions {
+    pub resolution: (u32, u32),
+    pub aspect_ratio: f32,
+}
+impl ImageDimensions {
+    pub fn build(x: u32, y: u32) -> ImageDimensions {
+        ImageDimensions {
+            resolution: (x, y),
+            aspect_ratio: (x as f32 / y as f32),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Transform {
     pub scale: f32,
@@ -33,7 +47,7 @@ impl Rotation2D {
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Vertex {
     position: [f32; 3],
-    tex_coords: [f32; 2], // NEW!
+    tex_coords: [f32; 2],
 }
 
 impl Vertex {
@@ -51,7 +65,7 @@ impl Vertex {
                 wgpu::VertexAttribute {
                     offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
                     shader_location: 1,
-                    format: wgpu::VertexFormat::Float32x2, // NEW!
+                    format: wgpu::VertexFormat::Float32x2,
                 },
             ],
         }
@@ -76,54 +90,85 @@ impl ImagePlacement {
         scale_factor: f32,
         pos: [f32; 3],
         rotation: f32,
+        output_dimensions: ImageDimensions,
     ) -> ImagePlacement {
         let placement = ImagePlacement::scale(&placement, scale_factor);
         let placement = ImagePlacement::translate(&placement, &pos);
         let placement = ImagePlacement::rotate(&placement, rotation);
+        let placement = ImagePlacement::normalize_to_aspect(&placement, output_dimensions);
         placement
     }
     fn get_vertices(image_resolution: (u32, u32)) -> [Vertex; 4] {
         let (width, height) = (image_resolution.0 as f32, image_resolution.1 as f32);
         [
             Vertex {
-                position: [-100.0, 100.0, 0.0],
+                position: [-1.0, 1.0, 0.0],
                 tex_coords: [0.0, 0.0],
             }, // top_left
             Vertex {
-                position: [-100.0, -100.0, 0.0],
+                position: [-1.0, -1.0, 0.0],
                 tex_coords: [0.0, 1.0],
             }, // bottom_left
             Vertex {
-                position: [100.0, -100.0, 0.0],
+                position: [1.0, -1.0, 0.0],
                 tex_coords: [1.0, 1.0],
             }, // bottom_right
             Vertex {
-                position: [100.0, 100.0, 0.0],
+                position: [1.0, 1.0, 0.0],
                 tex_coords: [1.0, 0.0],
             }, // top_right
         ]
-        /*
-        [
-            Vertex {
-                position: [width * -0.5, height * 0.5, 0.0],
-                tex_coords: [0.0, 0.0],
-            }, // top_left
-            Vertex {
-                position: [width * -0.5, height * -0.5, 0.0],
-                tex_coords: [0.0, 1.0],
-            }, // bottom_left
-            Vertex {
-                position: [width * 0.5, height * -0.5, 0.0],
-                tex_coords: [1.0, 1.0],
-            }, // bottom_right
-            Vertex {
-                position: [width * 0.5, height * 0.5, 0.0],
-                tex_coords: [1.0, 0.0],
-            }, // top_right
-        ]
-        */
     }
 
+    fn rows_x_cols(x: f32, y: f32, theta: f32) -> (f32, f32) {
+        let rotation = Rotation2D::theta(theta); //TODO name theta what it is (degrees, radians, quaterions, lets find out?)
+        (
+            rotation.tl * x + rotation.tr * y,
+            rotation.bl * x + rotation.br * y,
+        )
+    }
+
+    fn normalize_to_aspect(
+        input_placement: &ImagePlacement,
+        output_dimensions: ImageDimensions,
+    ) -> ImagePlacement {
+        let mut normalized: ImagePlacement = *input_placement;
+        normalized.vertices[0] = Vertex {
+            position: [
+                input_placement.vertices[0].position[0] / output_dimensions.aspect_ratio,
+                input_placement.vertices[0].position[1],
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[0].tex_coords,
+        };
+        normalized.vertices[1] = Vertex {
+            position: [
+                input_placement.vertices[1].position[0] / output_dimensions.aspect_ratio,
+                input_placement.vertices[1].position[1],
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[1].tex_coords,
+        };
+
+        normalized.vertices[2] = Vertex {
+            position: [
+                input_placement.vertices[2].position[0] / output_dimensions.aspect_ratio,
+                input_placement.vertices[2].position[1],
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[2].tex_coords,
+        };
+        normalized.vertices[3] = Vertex {
+            position: [
+                input_placement.vertices[3].position[0] / output_dimensions.aspect_ratio,
+                input_placement.vertices[3].position[1],
+                0.0,
+            ],
+            tex_coords: input_placement.vertices[3].tex_coords,
+        };
+
+        normalized
+    }
     fn scale(input_placement: &ImagePlacement, scale_factor: f32) -> ImagePlacement {
         let mut scaled: ImagePlacement = *input_placement;
         scaled.vertices[0] = Vertex {
@@ -242,14 +287,6 @@ impl ImagePlacement {
         };
         rotated
     }
-
-    fn rows_x_cols(x: f32, y: f32, theta: f32) -> (f32, f32) {
-        let rotation = Rotation2D::theta(theta); //TODO name theta what it is (degrees, radians, quaterions, lets find out?)
-        (
-            rotation.tl * x + rotation.tr * y,
-            rotation.bl * x + rotation.br * y,
-        )
-    }
 }
 
 #[derive(Debug)]
@@ -268,6 +305,7 @@ impl Image {
         queue: &Queue,
         texture_bind_group_layout: &wgpu::BindGroupLayout,
         diffuse_sampler: &wgpu::Sampler,
+        output_res: ImageDimensions,
     ) -> Image {
         let (diffuse_texture, diffuse_rgba) = ingest_image(path, device);
         //if you included normals etc you'd want a material struct
@@ -278,6 +316,7 @@ impl Image {
             transform.scale,
             transform.translation,
             transform.rotation,
+            output_res,
         );
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
