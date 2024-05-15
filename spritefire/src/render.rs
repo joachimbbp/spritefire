@@ -121,11 +121,11 @@ pub async fn run(canvas: Vec<PlacedSprite>, output_dimensions: ImageDimensions) 
             occlusion_query_set: None,
             timestamp_writes: None,
         };
-        let mut updated_canvas: Vec<image_utils::Image> = vec![];
+        let mut full_data_canvas: Vec<image_utils::Image> = vec![];
         //let mut canvas: Vec<PlacedSprite> = vec![];
         for sprite in &canvas {
-            println!("Sprite Transform:\n{:#?}\n", sprite.transform);
-            updated_canvas.push(Image::load_image(
+            // println!("Sprite Transform:\n{:#?}\n", sprite.transform);
+            full_data_canvas.push(Image::load_image(
                 &sprite.sprite_path,
                 sprite.transform,
                 &device,
@@ -138,9 +138,8 @@ pub async fn run(canvas: Vec<PlacedSprite>, output_dimensions: ImageDimensions) 
 
         let mut render_pass: wgpu::RenderPass = encoder.begin_render_pass(&render_pass_desc);
         render_pass.set_pipeline(&render_pipeline);
-        for sprite in &updated_canvas {
+        for sprite in &full_data_canvas {
             let (bind_group, vertex_buffer, index_buffer, indices) = setup_image(sprite);
-
             render_pass.set_bind_group(0, &bind_group, &[]);
             render_pass.set_vertex_buffer(0, vertex_buffer.slice(..));
             render_pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint16);

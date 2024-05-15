@@ -19,7 +19,7 @@ fn main() {
         let emoji_db = EmojiDatabase::from_bytes(&bytes);
         let img = image::open(args[3].clone()).unwrap();
         let emojis = emoji_db.emojify_image_to_string(img, 4);
-        println!("{}", emojis);
+        //println!("{}", emojis);
     } else if args[1] == "debug" {
         // write average color calculated for emojis to a css file
         // this makes it easy to view in vscode which shows color preview for
@@ -32,7 +32,7 @@ fn main() {
             path::PathBuf::from("/Users/joachimpfefferkorn/repos/spritefire/assets/db.dat");
 
         let bytes = fs::read(db_path.clone()).unwrap();
-        println!("\nBytes read\n");
+        //println!("\nBytes read\n");
         let emoji_db = EmojiDatabase::from_bytes(&bytes);
         println!("db created\n");
         draw_frame(emoji_db);

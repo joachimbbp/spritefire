@@ -25,16 +25,16 @@ pub fn draw_frame(db: EmojiDatabase) {
     )
     .unwrap();
     let sprite_root = "/Users/joachimpfefferkorn/repos/spritefire/assets/sprites_512/";
-    let pool_size = 120;
+    let pool_size = 30;
     let output_dimensions = image_utils::ImageDimensions::build(1920, 1080);
 
     let rt = Runtime::new().unwrap();
-    let canvas = rt.block_on(make_canvas(&db, img, pool_size, &sprite_root));
+    let canvas = rt.block_on(place_sprites(&db, img, pool_size, &sprite_root));
     let handle = rt.handle();
     handle.block_on(run(canvas, output_dimensions));
 }
 
-async fn make_canvas(
+async fn place_sprites(
     db: &EmojiDatabase,
     img: DynamicImage,
     pool_size: u32,
@@ -43,12 +43,22 @@ async fn make_canvas(
     let (width, height) = img.dimensions();
     let num_squares_x = width / pool_size;
     let num_squares_y = height / pool_size;
-
-    //let mut sprite_path: &str;
     let mut canvas: Vec<PlacedSprite> = vec![];
 
+    let mut offset = (-1.0, 1.0);
+    let increment: (f32, f32) = (
+        2.0 / (width as f32 / pool_size as f32),
+        2.0 / (height as f32 / pool_size as f32),
+    );
+    //hard coded for now with input resolution
+
     for y in 0..=num_squares_y {
+        offset.1 = 1.0 - increment.1 * y as f32; // Update the y-coordinate here
+
         for x in 0..=num_squares_x {
+            offset.0 = (-1.0 + increment.0 * x as f32) * 1.777; // Update the x-coordinate here
+                                                                //TEMP aspect ratio hard coded in
+
             let mut sum_r = 0;
             let mut sum_g = 0;
             let mut sum_b = 0;
@@ -72,7 +82,6 @@ async fn make_canvas(
 
             // do no find emoji for transparent parts of image
             if pix_count == 0 {
-                //TODO
                 continue;
             } else {
                 let avg_r = (sum_r / pix_count) as u8;
@@ -83,11 +92,11 @@ async fn make_canvas(
                 let unicode_emoji = format!("{:x}", emoji.chars().next().unwrap() as u32);
                 let sprite_path = format!("{}emoji_u{}.png", sprite_root, unicode_emoji); //terrible parsing gore omg
 
+                println!("Offset: {:#?}", offset);
                 let transform = image_utils::Transform {
-                    //TEMP GARBO
-                    scale: 0.1,
+                    scale: 0.12, //garbo temp, TODO: what makes the scale?
                     rotation: 0.0,
-                    translation: [-1.0 + (x as f32 / 5.0), 1.0 - (y as f32 / 5.0), 0.0],
+                    translation: [offset.0, offset.1, 0.0],
                 };
                 canvas.push(PlacedSprite::build(sprite_path, transform));
             }

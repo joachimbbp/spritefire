@@ -81,7 +81,7 @@ struct ImagePlacement {
 impl ImagePlacement {
     fn new(image_resolution: (u32, u32)) -> ImagePlacement {
         ImagePlacement {
-            vertices: ImagePlacement::get_vertices(image_resolution),
+            vertices: ImagePlacement::square_verts(),
             indices: [0, 1, 3, 1, 2, 3],
         }
     }
@@ -96,10 +96,10 @@ impl ImagePlacement {
         let placement = ImagePlacement::translate(&placement, &pos);
         let placement = ImagePlacement::rotate(&placement, rotation);
         let placement = ImagePlacement::normalize_to_aspect(&placement, output_dimensions);
+        //println!("Placement:\n{:#?}", placement);
         placement
     }
-    fn get_vertices(image_resolution: (u32, u32)) -> [Vertex; 4] {
-        let (width, height) = (image_resolution.0 as f32, image_resolution.1 as f32);
+    fn square_verts() -> [Vertex; 4] {
         [
             Vertex {
                 position: [-1.0, 1.0, 0.0],
@@ -381,7 +381,7 @@ pub fn ingest_image(
     image_path: &str,
     device: &wgpu::Device,
 ) -> (Texture, ImageBuffer<Rgba<u8>, Vec<u8>>) {
-    println!("\nIngesting {}", image_path);
+    //println!("\nIngesting {}", image_path);
     let diffuse_bytes = std::fs::read(image_path).unwrap(); //should be equivelent to include_bytes!()
     let diffuse_image = image::load_from_memory(&diffuse_bytes).unwrap();
     let diffuse_rgba = diffuse_image.to_rgba8();
@@ -402,10 +402,10 @@ pub fn ingest_image(
         label: Some("diffuse_texture"),
         view_formats: &[],
     });
-    println!(
+    (
         "diffuse texture Size: {:#?}x{:#?}",
         diffuse_texture.width(),
-        diffuse_texture.height()
+        diffuse_texture.height(),
     );
     (diffuse_texture, diffuse_rgba)
 }
