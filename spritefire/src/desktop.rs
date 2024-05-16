@@ -50,14 +50,13 @@ async fn place_sprites(
         2.0 / (width as f32 / pool_size as f32),
         2.0 / (height as f32 / pool_size as f32),
     );
-    //hard coded for now with input resolution
 
+    let aspect_ratio = width as f32 / height as f32;
     for y in 0..=num_squares_y {
         offset.1 = 1.0 - (increment.1 * y as f32); // Update the y-coordinate here
 
         for x in 0..=num_squares_x {
-            offset.0 = (-1.0 + increment.0 * x as f32) * 1.777777; // Update the x-coordinate here
-                                                                   //TEMP aspect ratio hard coded in
+            offset.0 = (-1.0 + increment.0 * x as f32) * aspect_ratio; // Update the x-coordinate here
 
             let mut sum_r = 0;
             let mut sum_g = 0;
