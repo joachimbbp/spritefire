@@ -7,10 +7,10 @@
 [Emoji Mirror](https://twitu.github.io/emoji-mirror/) is a live, text based, WASM version of Spritefire by [Ishan](https://github.com/twitu) and [PB](https://github.com/pbt). It works best in chrome.
 
 # Implementation
+<br>![Example of a frame using a custom sprite dataset. Credit: Felix Caraballo](readme_assets/15_warbler.png)
 By default, sprites are Noto Emojis (found in the asset folder), but you could build your own library of sprites if you wish.
 Before creating a mosaic, Spritefire must generate a database of the average color for each sprite. This average is determined by adding all the red, green, and blue values in each pixel and then dividing each channel by the number of pixels in the sprite.
 <br>After the user determines desired size of the tiles, the source image is resized so that there is only one pixel for each tile. The program then iterates through each pixel in the image, matching it to the sprite with the closest overall color color. These matches are saved to a temporary `canvas`, which is used by the `draw` function to render and save the image.
-
 ## Euclidean Color Distance
 Sprites are matched to pixels when the color distance between the two is the smallest.
 <br>This is determined by the Euclidean Color Distance in `RGB` space: $$distance=\sqrt{(R_{sprite}-R_{pixel})^2+(G_{sprite}-G_{pixel})^2+(B_{sprite}-B_{pixel})^2}$$
