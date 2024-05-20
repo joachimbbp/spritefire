@@ -5,13 +5,13 @@ use std::{
 };
 
 use crate::emoji::Emoji;
-use fixed::{types::extra::U0, FixedU8};
+use fixed::{types::extra::U0, FixedU16};
 use image::{DynamicImage, GenericImageView, Rgb};
 use kiddo::fixed::{distance::Manhattan, distance::SquaredEuclidean, kdtree::KdTree};
 use postcard::{from_bytes, to_allocvec};
 use serde::{Deserialize, Serialize};
 
-type Fxd = FixedU8<U0>;
+type Fxd = FixedU16<U0>;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EmojiDatabase {
@@ -32,9 +32,9 @@ impl EmojiDatabase {
         let mut kdtree = KdTree::new();
         emojis.iter().enumerate().for_each(|(i, emoji)| {
             let color = [
-                FixedU8::from_num(emoji.color[0]),
-                FixedU8::from_num(emoji.color[1]),
-                FixedU8::from_num(emoji.color[2]),
+                FixedU16::from_num(emoji.color[0]),
+                FixedU16::from_num(emoji.color[1]),
+                FixedU16::from_num(emoji.color[2]),
             ];
             kdtree.add(&color, i as u32);
         });
@@ -47,17 +47,15 @@ impl EmojiDatabase {
 
     pub fn lookup_closest_dense_emoji(&self, rgb: Rgb<u8>) -> &str {
         let point = [
-            FixedU8::from_num(rgb[0]),
-            FixedU8::from_num(rgb[1]),
-            FixedU8::from_num(rgb[2]),
+            FixedU16::from_num(rgb[0]),
+            FixedU16::from_num(rgb[1]),
+            FixedU16::from_num(rgb[2]),
         ];
 
         //TEMP DEBUG
         println!("\ndense emoji Point: {:#?}\n", point);
 
-        // convert point to a
-
-        let nearest = self.kdtree.nearest_n::<Manhattan>(&point, 3);
+        let nearest = self.kdtree.nearest_n::<SquaredEuclidean>(&point, 3);
 
         //TEMP DEBUG
         println!("\nnearest {:#?}", nearest);
@@ -75,9 +73,9 @@ impl EmojiDatabase {
 
     pub fn lookup_closest_emoji(&self, rgb: Rgb<u8>) -> &str {
         let point = [
-            FixedU8::from_num(rgb[0]),
-            FixedU8::from_num(rgb[1]),
-            FixedU8::from_num(rgb[2]),
+            FixedU16::from_num(rgb[0]),
+            FixedU16::from_num(rgb[1]),
+            FixedU16::from_num(rgb[2]),
         ];
         //TEMP DEBUG
         println!("emoji Point: {:#?}", point);
@@ -129,7 +127,7 @@ impl EmojiDatabase {
                     let avg_g = (sum_g / pix_count) as u8;
                     let avg_b = (sum_b / pix_count) as u8;
 
-                    let emoji = self.lookup_closest_dense_emoji(Rgb([avg_r, avg_g, avg_b]));
+                    let emoji = self.lookup_closest_emoji(Rgb([avg_r, avg_g, avg_b]));
                     emojis.push_str(&emoji);
                 }
             }
@@ -168,6 +166,7 @@ pub fn read_emojis_from_directory(dir_path: PathBuf) -> Vec<Emoji> {
 
             let mut emoji_unicode_point = String::new();
             let _ = parts.next().unwrap();
+            //println!("file name: {}\n", file_name_str);
             let first = parts.next().unwrap().strip_prefix("u").unwrap();
             let code_point = u32::from_str_radix(first, 16).unwrap();
             let code_point = char::from_u32(code_point).unwrap().to_string();

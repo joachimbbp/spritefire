@@ -25,7 +25,7 @@ pub fn draw_frame(db: EmojiDatabase) {
     )
     .unwrap();
     let sprite_root = "/Users/joachimpfefferkorn/repos/spritefire/assets/sprites_512/";
-    let pool_size = 60;
+    let pool_size = 20;
     let output_dimensions = image_utils::ImageDimensions::build(1920, 1080);
 
     let rt = Runtime::new().unwrap();
