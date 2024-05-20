@@ -25,7 +25,7 @@ pub fn draw_frame(db: EmojiDatabase) {
     )
     .unwrap();
     let sprite_root = "/Users/joachimpfefferkorn/repos/spritefire/assets/sprites_512/";
-    let pool_size = 20;
+    let pool_size = 60;
     let output_dimensions = image_utils::ImageDimensions::build(1920, 1080);
 
     let rt = Runtime::new().unwrap();
@@ -45,7 +45,7 @@ async fn place_sprites(
     let num_squares_y = height / pool_size;
     let mut canvas: Vec<PlacedSprite> = vec![];
 
-    let mut offset = (-1.0, 1.0);
+    let mut offset = (-1.0 + (width as f32 / 2.0), 1.0 + (height as f32));
     let increment: (f32, f32) = (
         2.0 / (width as f32 / pool_size as f32),
         2.0 / (height as f32 / pool_size as f32),
